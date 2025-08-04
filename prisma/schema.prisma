@@ -1,0 +1,129 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Users {
+    id        String    @id @default(uuid())
+    nama      String    @db.VarChar(50)
+    email     String    @unique @db.VarChar(50)
+    phone     String    @db.VarChar(15)
+    password  String    @db.VarChar(255)
+    role      String    @default("user")
+    createdAt DateTime  @default(now()) @db.Timestamp(0)
+    createdBy String    @default("system") @db.VarChar(36)
+    updatedAt DateTime  @updatedAt @db.Timestamp(0)
+    updatedBy String    @default("system") @db.VarChar(36)
+    deletedAt DateTime? @db.Timestamp(0)
+    deletedBy String?   @db.VarChar(36)
+}
+
+model Warehouses {
+    id        String @id @default(uuid())
+    kode_wh String @unique @db.VarChar(10)
+    nama_wh      String @db.VarChar(50)
+    alamat String @db.VarChar(150)
+    createdAt DateTime  @default(now()) @db.Timestamp(0)
+    createdBy String    @default("system") @db.VarChar(36)
+    updatedAt DateTime  @updatedAt @db.Timestamp(0)
+    updatedBy String    @default("system") @db.VarChar(36)
+    deletedAt DateTime? @db.Timestamp(0)
+    deletedBy String?   @db.VarChar(36)
+}
+
+model Items {
+    id            String          @id @default(uuid())
+    designator   String            @unique @db.VarChar(30)
+    nama_item          String          @unique @db.VarChar(50)
+    kategori       String          @db.VarChar(20)
+    harga         Float
+    createdAt     DateTime        @default(now()) @db.Timestamp(0)
+    createdBy     String          @default("system") @db.VarChar(36)
+    updatedAt     DateTime        @updatedAt @db.Timestamp(0)
+    updatedBy     String          @default("system") @db.VarChar(36)
+    deletedAt     DateTime?       @db.Timestamp(0)
+    deletedBy     String?         @db.VarChar(36)
+}
+
+model Pengeluaran {
+    id            String          @id @default(uuid())
+    tanggal       DateTime        @default(now()) @db.Timestamp(0)
+    kode_wh       String          @db.VarChar(10)
+    petugas_wh String          @db.VarChar(50)
+    penerima String @db.VarChar(50)
+    createdAt     DateTime        @default(now()) @db.Timestamp(0)
+    createdBy     String          @default("system") @db.VarChar(36)
+    updatedAt     DateTime        @updatedAt @db.Timestamp(0)
+    updatedBy     String          @default("system") @db.VarChar(36)
+    deletedAt     DateTime?       @db.Timestamp(0)
+    deletedBy     String?         @db.VarChar(36)
+}
+
+model Subscriptions {
+    id            String    @id @default(uuid())
+    serviceNumber String    @unique @db.VarChar(50)
+    customerId    String    @db.VarChar(36)
+    productId     String    @db.VarChar(36)
+    startDate     DateTime  @db.Timestamp(0)
+    endDate       DateTime  @db.Timestamp(0)
+    status        String    @default("active")
+    createdAt     DateTime  @default(now()) @db.Timestamp(0)
+    createdBy     String    @default("system") @db.VarChar(36)
+    updatedAt     DateTime  @updatedAt @db.Timestamp(0)
+    updatedBy     String    @default("system") @db.VarChar(36)
+    deletedAt     DateTime? @db.Timestamp(0)
+    deletedBy     String?   @db.VarChar(36)
+    customer      Customers @relation(fields: [customerId], references: [id])
+    product       Products  @relation(fields: [productId], references: [id])
+
+    invoices Invoices[]
+}
+
+model Invoices {
+    id             String    @id @default(uuid())
+    invoiceNumber  String    @unique @db.VarChar(50)
+    period         String    @db.VarChar(20)
+    invoiceDate    DateTime  @db.Timestamp(0)
+    dueDate        DateTime  @db.Timestamp(0)
+    subscriptionId String    @db.VarChar(36)
+    customerId     String    @db.VarChar(36)
+    productId      String    @db.VarChar(36)
+    amount         Float
+    taxRate        Float
+    taxAmount      Float
+    totalAmount    Float
+    status         String    @default("unpaid") @db.VarChar(20)
+    createdAt      DateTime  @default(now()) @db.Timestamp(0)
+    createdBy      String    @default("system") @db.VarChar(36)
+    updatedAt      DateTime  @updatedAt @db.Timestamp(0)
+    updatedBy      String    @default("system") @db.VarChar(36)
+    deletedAt      DateTime? @db.Timestamp(0)
+    deletedBy      String?   @db.VarChar(36)
+
+    customer     Customers     @relation(fields: [customerId], references: [id])
+    product      Products      @relation(fields: [productId], references: [id])
+    subscription Subscriptions @relation(fields: [subscriptionId], references: [id])
+
+    payments Payments[]
+}
+
+model Payments {
+    id            String    @id @default(uuid())
+    invoiceId     String    @db.VarChar(36)
+    amount        Float
+    paymentDate   DateTime  @db.Timestamp(0)
+    paymentMethod String    @db.VarChar(50)
+    status        String    @default("pending") @db.VarChar(20)
+    createdAt     DateTime  @default(now()) @db.Timestamp(0)
+    createdBy     String    @default("system") @db.VarChar(36)
+    updatedAt     DateTime  @updatedAt @db.Timestamp(0)
+    updatedBy     String    @default("system") @db.VarChar(36)
+    deletedAt     DateTime? @db.Timestamp(0)
+    deletedBy     String?   @db.VarChar(36)
+
+    invoice Invoices @relation(fields: [invoiceId], references: [id])
+}

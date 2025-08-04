@@ -1,0 +1,14 @@
+# depedencies
+node_modules/
+
+# testing
+/coverage
+
+#production
+/build
+/dist
+
+# Misc
+DS_Store
+.package-lock.json
+.env
