@@ -137,6 +137,7 @@ export const getAllWHService = async (filters: WarehouseFilter) => {
       where: {
         ...(kode_wh && { kode_wh: { contains: kode_wh, mode: 'insensitive' } }),
         ...(nama_wh && { nama_wh: { contains: nama_wh, mode: 'insensitive' }}),
+        deletedAt: null
       }
     })
   ])
