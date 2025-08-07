@@ -7,123 +7,126 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Users {
+model User {
     id        String    @id @default(uuid())
     nama      String    @db.VarChar(50)
     email     String    @unique @db.VarChar(50)
     phone     String    @db.VarChar(15)
     password  String    @db.VarChar(255)
     role      String    @default("user")
+    kode_wh String? @db.VarChar(10)
     createdAt DateTime  @default(now()) @db.Timestamp(0)
     createdBy String    @default("system") @db.VarChar(36)
     updatedAt DateTime  @updatedAt @db.Timestamp(0)
     updatedBy String    @default("system") @db.VarChar(36)
     deletedAt DateTime? @db.Timestamp(0)
     deletedBy String?   @db.VarChar(36)
+
+    kodeWh Warehouse? @relation(fields: [kode_wh], references: [kode_wh])
+    Transaksi Transaksi[] @relation("petugas")
 }
 
-model Warehouses {
-    id        String @id @default(uuid())
-    kode_wh String @unique @db.VarChar(10)
-    nama_wh      String @db.VarChar(50)
-    alamat String @db.VarChar(150)
+model Warehouse {
+    id        String    @id @default(uuid())
+    kode_wh   String    @unique @db.VarChar(10)
+    nama_wh   String    @db.VarChar(50)
+    alamat    String    @db.VarChar(150)
     createdAt DateTime  @default(now()) @db.Timestamp(0)
     createdBy String    @default("system") @db.VarChar(36)
     updatedAt DateTime  @updatedAt @db.Timestamp(0)
     updatedBy String    @default("system") @db.VarChar(36)
     deletedAt DateTime? @db.Timestamp(0)
     deletedBy String?   @db.VarChar(36)
+
+    // relasi
+    user User[]
+    transaksiDetail TransaksiDetail[]
+    kodeWhStock Stock[]
+
+
+    transaksiFrom     Transaksi[] @relation("FromWarehouse")
+    transaksiTo       Transaksi[] @relation("ToWarehouse")
 }
 
-model Items {
-    id            String          @id @default(uuid())
-    designator   String            @unique @db.VarChar(30)
-    nama_item          String          @unique @db.VarChar(50)
-    kategori       String          @db.VarChar(20)
-    harga         Float
-    createdAt     DateTime        @default(now()) @db.Timestamp(0)
-    createdBy     String          @default("system") @db.VarChar(36)
-    updatedAt     DateTime        @updatedAt @db.Timestamp(0)
-    updatedBy     String          @default("system") @db.VarChar(36)
-    deletedAt     DateTime?       @db.Timestamp(0)
-    deletedBy     String?         @db.VarChar(36)
+model Item {
+    id         String    @id @default(uuid())
+    designator String    @unique @db.VarChar(50)
+    nama_item  String    @unique @db.VarChar(50)
+    kategori   String    @db.VarChar(20)
+    harga      Float
+    createdAt  DateTime  @default(now()) @db.Timestamp(0)
+    createdBy  String    @default("system") @db.VarChar(36)
+    updatedAt  DateTime  @updatedAt @db.Timestamp(0)
+    updatedBy  String    @default("system") @db.VarChar(36)
+    deletedAt  DateTime? @db.Timestamp(0)
+    deletedBy  String?   @db.VarChar(36)
+
+    transaksiDetail TransaksiDetail[]
+    itemStock Stock[]
+
 }
 
-model Pengeluaran {
-    id            String          @id @default(uuid())
-    tanggal       DateTime        @default(now()) @db.Timestamp(0)
-    kode_wh       String          @db.VarChar(10)
-    petugas_wh String          @db.VarChar(50)
-    penerima String @db.VarChar(50)
-    createdAt     DateTime        @default(now()) @db.Timestamp(0)
-    createdBy     String          @default("system") @db.VarChar(36)
-    updatedAt     DateTime        @updatedAt @db.Timestamp(0)
-    updatedBy     String          @default("system") @db.VarChar(36)
-    deletedAt     DateTime?       @db.Timestamp(0)
-    deletedBy     String?         @db.VarChar(36)
-}
-
-model Subscriptions {
-    id            String    @id @default(uuid())
-    serviceNumber String    @unique @db.VarChar(50)
-    customerId    String    @db.VarChar(36)
-    productId     String    @db.VarChar(36)
-    startDate     DateTime  @db.Timestamp(0)
-    endDate       DateTime  @db.Timestamp(0)
-    status        String    @default("active")
-    createdAt     DateTime  @default(now()) @db.Timestamp(0)
-    createdBy     String    @default("system") @db.VarChar(36)
-    updatedAt     DateTime  @updatedAt @db.Timestamp(0)
-    updatedBy     String    @default("system") @db.VarChar(36)
-    deletedAt     DateTime? @db.Timestamp(0)
-    deletedBy     String?   @db.VarChar(36)
-    customer      Customers @relation(fields: [customerId], references: [id])
-    product       Products  @relation(fields: [productId], references: [id])
-
-    invoices Invoices[]
-}
-
-model Invoices {
-    id             String    @id @default(uuid())
-    invoiceNumber  String    @unique @db.VarChar(50)
-    period         String    @db.VarChar(20)
-    invoiceDate    DateTime  @db.Timestamp(0)
-    dueDate        DateTime  @db.Timestamp(0)
-    subscriptionId String    @db.VarChar(36)
-    customerId     String    @db.VarChar(36)
-    productId      String    @db.VarChar(36)
-    amount         Float
-    taxRate        Float
-    taxAmount      Float
-    totalAmount    Float
-    status         String    @default("unpaid") @db.VarChar(20)
+model Transaksi {
+    id             Int       @id @default(autoincrement())
+    tanggal        DateTime  @default(now()) @db.Timestamp(0)
+    from_wh        String    @db.VarChar(10)
+    to_wh          String?   @db.VarChar(50)
+    to_user        String?   @db.VarChar(50)
+    tipe_transaksi Int       @default(0)
+    status         String?   @db.VarChar(10)
+    petugas       String    @db.VarChar(255)
+    penerima       String?    @db.VarChar(50)
+    confirmAt      DateTime? @db.Timestamp(0)
+    confirmBy      String?   @db.VarChar(36)
     createdAt      DateTime  @default(now()) @db.Timestamp(0)
     createdBy      String    @default("system") @db.VarChar(36)
-    updatedAt      DateTime  @updatedAt @db.Timestamp(0)
-    updatedBy      String    @default("system") @db.VarChar(36)
+    updatedAt      DateTime? @updatedAt @db.Timestamp(0)
+    updatedBy      String?   @default("system") @db.VarChar(36)
     deletedAt      DateTime? @db.Timestamp(0)
     deletedBy      String?   @db.VarChar(36)
 
-    customer     Customers     @relation(fields: [customerId], references: [id])
-    product      Products      @relation(fields: [productId], references: [id])
-    subscription Subscriptions @relation(fields: [subscriptionId], references: [id])
+    TransaksiDetail TransaksiDetail[]
 
-    payments Payments[]
+    fromWh Warehouse @relation("FromWarehouse", fields: [from_wh], references: [kode_wh])
+    toWh   Warehouse? @relation("ToWarehouse", fields: [to_wh], references: [kode_wh])
+
+    petugasWh User @relation("petugas", fields: [petugas], references: [id])
 }
 
-model Payments {
-    id            String    @id @default(uuid())
-    invoiceId     String    @db.VarChar(36)
-    amount        Float
-    paymentDate   DateTime  @db.Timestamp(0)
-    paymentMethod String    @db.VarChar(50)
-    status        String    @default("pending") @db.VarChar(20)
-    createdAt     DateTime  @default(now()) @db.Timestamp(0)
-    createdBy     String    @default("system") @db.VarChar(36)
-    updatedAt     DateTime  @updatedAt @db.Timestamp(0)
-    updatedBy     String    @default("system") @db.VarChar(36)
-    deletedAt     DateTime? @db.Timestamp(0)
-    deletedBy     String?   @db.VarChar(36)
+model TransaksiDetail {
+    id              String    @id @default(uuid())
+    id_transaksi    Int 
+    tanggal         DateTime  @default(now()) @db.Timestamp(0)
+    kode_wh         String    @db.VarChar(10)
+    jenis_transaksi String    @db.VarChar(10)
+    designator      String    @db.VarChar(50)
+    qty             Int       @default(0)
+    createdAt       DateTime  @default(now()) @db.Timestamp(0)
+    createdBy       String    @default("system") @db.VarChar(36)
+    updatedAt       DateTime? @updatedAt @db.Timestamp(0)
+    updatedBy       String?   @db.VarChar(36)
+    deletedAt       DateTime? @db.Timestamp(0)
+    deletedBy       String?   @db.VarChar(36)
 
-    invoice Invoices @relation(fields: [invoiceId], references: [id])
+    // relasi
+    transaksiItem Item @relation(fields: [designator], references: [designator])
+    transaksiWh Warehouse @relation(fields: [kode_wh], references: [kode_wh])
+    transaksiDetail Transaksi @relation(fields: [id_transaksi], references: [id])
+}
+
+model Stock {
+    id         String    @id @default(uuid())
+    kode_wh    String    @db.VarChar(10)
+    designator String    @db.VarChar(50)
+    available  Int       @default(0)
+    transit    Int       @default(0)
+    createdAt  DateTime  @default(now()) @db.Timestamp(0)
+    createdBy  String    @default("system") @db.VarChar(36)
+    updatedAt  DateTime? @updatedAt @db.Timestamp(0)
+    updatedBy  String?   @db.VarChar(36)
+    deletedAt  DateTime? @db.Timestamp(0)
+    deletedBy  String?   @db.VarChar(36)
+
+    itemStock Item @relation(fields: [designator], references: [designator])
+    kodeWhStock Warehouse @relation(fields: [kode_wh], references: [kode_wh])
 }

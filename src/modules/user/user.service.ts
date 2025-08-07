@@ -8,7 +8,7 @@ const prisma = new PrismaClient()
 
 export const saveUserService = async (payload: UserType) => {
   // checkuser
-  const userExist = await prisma.users.findUnique({
+  const userExist = await prisma.user.findUnique({
     where: { email: payload.email },
     select: { id: true } // cukup ambil id untuk cek
   })
@@ -22,14 +22,14 @@ export const saveUserService = async (payload: UserType) => {
   // hashPassword
   const hashedPassword = await hashPassword(payload.password)
   // insert ke DB
-  const newUser = await prisma.users.create({
+  const newUser = await prisma.user.create({
     data: {
       id: uuidv4(),
-      name: '',
+      nama: '',
       email: payload.email,
       phone: '',
       password: hashedPassword,
-      isAdmin: false,
+      role: 'user',
       createdBy: 'system'
     }
   })
@@ -38,7 +38,7 @@ export const saveUserService = async (payload: UserType) => {
 
 export const loginService = async (payload: UserType) => {
   // checkuser
-  const user: any = await prisma.users.findUnique({
+  const user: any = await prisma.user.findUnique({
     where: { email: payload.email }
   })
   if (!user) throw new Error('User dan Password Salah')
@@ -46,10 +46,10 @@ export const loginService = async (payload: UserType) => {
   const isValid = await comparePassword(payload.password, user.password)
 
   if (!isValid) throw new Error('User dan Password Salah')
-  const { id, email, name, isAdmin } = user
+  const { id, name, role } = user
 
-  const accessToken = signJWT({ id, email, name, isAdmin }, { expiresIn: '1h' })
-  const refreshToken = signJWT({ id, email, name, isAdmin }, { expiresIn: '1d' })
+  const accessToken = signJWT({ id, name, role }, { expiresIn: '1h' })
+  const refreshToken = signJWT({ id, name, role }, { expiresIn: '1d' })
 
   return { accessToken, refreshToken }
 }
@@ -57,16 +57,15 @@ export const loginService = async (payload: UserType) => {
 export const refreshTokenService = async (refreshToken: string) => {
   const { decoded } = verifyJWT(refreshToken)
 
-  const user = await prisma.users.findUnique({ where: { id: decoded.id } })
+  const user = await prisma.user.findUnique({ where: { id: decoded.id } })
   if (!user) {
     throw new Error('Invalid refresh token')
   }
   const accessToken = signJWT(
     {
       userId: user.id,
-      email: user.email,
-      name: user.name,
-      isAdmin: user.isAdmin
+      name: user.nama,
+      role: user.role
     },
     { expiresIn: '1h' }
   )

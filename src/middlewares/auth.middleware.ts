@@ -47,7 +47,7 @@ export const requireUser = (req: Request, res: Response, next: NextFunction) => 
 
 export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
   const user = res.locals.user
-  if (!user || user.isAdmin !== true) {
+  if (!user || user.role !== 'admin') {
     return res.status(403).json({
       status: false,
       statusCode: 403,

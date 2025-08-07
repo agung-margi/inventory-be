@@ -3,7 +3,7 @@ import { createSessionValidation, createUserValidation, refreshSessionValidation
 import { saveUserService, loginService, refreshTokenService } from './user.service'
 import crypto from 'crypto'
 
-export const regiterUser = async (req: Request, res: Response) => {
+export const registerUser = async (req: Request, res: Response) => {
   try {
     const { error, value } = createUserValidation(req.body)
     //   console.log(req.body)

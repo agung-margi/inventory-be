@@ -1,9 +1,9 @@
 import { Router } from 'express'
-import { createSession, getMe, refreshSession, regiterUser } from './user.controller'
+import { createSession, getMe, refreshSession, registerUser } from './user.controller'
 import { requireAuth } from '../../middlewares/auth.middleware'
 
 export const UserRouter: Router = Router()
-UserRouter.post('/register', regiterUser)
+UserRouter.post('/register', registerUser)
 UserRouter.post('/login', createSession)
 UserRouter.post('/refresh', refreshSession)
 UserRouter.get('/me', requireAuth, getMe)
