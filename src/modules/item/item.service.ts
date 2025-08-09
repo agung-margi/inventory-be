@@ -13,7 +13,8 @@ export const createItemService = async (payload: ItemType, userId: string) => {
             designator: payload.designator,
             nama_item : payload.nama_item,
             kategori : payload.kategori,
-            harga:0,
+            satuan: payload.satuan ?? '',
+            harga: 0,
             createdAt:getNowWIB(),
             createdBy: userId,
         }

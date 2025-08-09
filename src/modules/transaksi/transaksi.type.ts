@@ -1,19 +1,58 @@
-export default interface TransaksiType {
+export interface PengeluaranType {
   id: number
   tanggal: Date
-  from_wh: string
-  to_wh?: string
-  to_user?: string
-  tipe_transaksi: number
+  warehouseId: string
+  petugasId: string
+  penerimaId: string
+  keterangan?: string
+  permintaanId: string
   status: string
-  petugas: string
-  penerima?: string
-  confirmAt?: Date
-  confirmBy?: string
   createdAt: Date
   createdBy: string
   items: {
     designator: string; 
-    qty: number; 
+    qty: number;
+    keterangan?: string;
+    satuan?: string;
+  }[];
+}
+
+
+export interface PenerimaanType {
+  id: number
+  tanggal: Date
+  pengirimanId: string
+  warehouseId: string
+  petugasId: string
+  penerimaId: string
+  sumber: string
+  jenis: string
+  keterangan?: string
+  permintaanId: string
+  status: string
+  createdAt: Date
+  createdBy: string
+  items: {
+    designator: string; 
+    qty: number;
+    keterangan?: string;
+    satuan?: string;
+  }[];
+}
+
+
+export interface PermintaanType {
+  id: number
+  tanggal: Date
+  tujuanWh: string
+  pemintaId: string
+  status: string
+  project?: string
+  catatan: string
+  createdAt: Date
+  createdBy: string
+  items: {
+    designator: string; 
+    qty: number;
   }[];
 }

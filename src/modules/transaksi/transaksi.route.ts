@@ -1,7 +1,11 @@
 import { Router } from 'express'
-import { createTransaksiOut } from './transaksi.controller'
+import { approvePermintaan, createPenerimaan, createPermintaan, createTransaksiOut, getAllPermintaan } from './transaksi.controller'
 import { requireAdmin, requireAuth } from '../../middlewares/auth.middleware'
 
 
 export const TransaksiRouter: Router = Router()
-TransaksiRouter.post('/', requireAdmin, requireAuth, createTransaksiOut)
+TransaksiRouter.post('/', requireAuth, createTransaksiOut)
+TransaksiRouter.post('/penerimaan', requireAuth, createPenerimaan)
+TransaksiRouter.post('/permintaan', requireAuth, createPermintaan)
+TransaksiRouter.get('/permintaan', requireAuth, getAllPermintaan)
+TransaksiRouter.put('/permintaan/:id', requireAuth, approvePermintaan)

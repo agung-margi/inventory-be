@@ -6,6 +6,7 @@ export const createItemValidation = (payload: ItemType) => {
         designator : Joi.string().required(),
         nama_item : Joi.string().required(),
         kategori : Joi.string().required(),
+        satuan : Joi.string().required(),
     })
     return schema.validate(payload)
 }

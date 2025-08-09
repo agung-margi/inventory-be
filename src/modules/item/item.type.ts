@@ -3,6 +3,7 @@ export default interface ItemType {
     designator: string
     nama_item: string
     kategori: string
+    satuan?: string
     createdAt: Date
     createdBy: string
     updatedAt?: Date

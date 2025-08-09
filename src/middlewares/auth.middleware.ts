@@ -56,6 +56,17 @@ export const requireAdmin = (req: Request, res: Response, next: NextFunction) =>
   return next()
 }
 
+export const requireManager = (req: Request, res: Response, next: NextFunction) => {
+  const user = res.locals.user
+  if (!user || user.role !== 'manager') {
+    return res.status(403).json({
+      status: false,
+      statusCode: 403,
+      message: 'Forbidden',})
+  }
+  return next()
+}
+
 export const requireCsrf = (req: Request, res: Response, next: NextFunction) => {
   const clientToken = req.headers['x-csrf-token'] as string;
   const serverToken = req.cookies['XSRF-TOKEN'] as string;
