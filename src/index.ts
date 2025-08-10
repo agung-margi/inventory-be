@@ -25,25 +25,40 @@ app.use(bodyParser.json())
 
 // cors access handler
 
+const allowedOrigins = ['http://localhost:5173', 'http://10.97.25.2:5173'];
+
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://10.97.25.2:5173'],
+  origin: function(origin, callback){
+    if(!origin) return callback(null, true); // untuk Postman, curl dll tanpa origin
+    if(allowedOrigins.indexOf(origin) === -1){
+      return callback(new Error('Not allowed by CORS'), false);
+    }
+    return callback(null, true);
+  },
   credentials: true,
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
 
 app.use((req, res, next) => {
   const allowedOrigins = ['http://localhost:5173', 'http://10.97.25.2:5173'];
   const origin = req.headers.origin;
 
-  if (typeof origin === 'string' && allowedOrigins.includes(origin)) {
+  if (origin && allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
 
   res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+
+  // Untuk preflight OPTIONS request langsung kirim 200 tanpa lanjut ke route lain
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+
   next();
 });
-
 // deserialized token middleware
 app.use(deserializedToken)
 
