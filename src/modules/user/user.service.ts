@@ -72,3 +72,17 @@ export const refreshTokenService = async (refreshToken: string) => {
   return accessToken
 }
 
+
+export const getUserById = async (id:string) => {
+  return await prisma.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      email: true,
+      nama: true,
+      role: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+};

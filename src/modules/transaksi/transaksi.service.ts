@@ -1,12 +1,12 @@
 import { PrismaClient } from '@prisma/client'
 import { v4 as uuidv4 } from 'uuid'
 import { getNowWIB } from '../../utils/date'
-import {PengeluaranType, PenerimaanType, PermintaanType} from './transaksi.type'
+import {PengeluaranType, PenerimaanType, PermintaanType, PermintaanFilter} from './transaksi.type'
 import { generateDocId } from '../../utils/gemerateIDDoc'
 
 const prisma = new PrismaClient()
 
-export const saveTransaksi = async (payload: PengeluaranType, userId: string) => {
+export const TransaksiOutService = async (payload: PengeluaranType, userId: string) => {
 
   
 const pengeluaranId = await generateDocId(
@@ -193,3 +193,60 @@ export const approvePermintaanService = async (id: string, userId: string) => {
   return updatedTransaksi
 }
 
+export const getAllPermintaanService = async (filters: PermintaanFilter) =>{
+  const {
+    id,
+    tanggal,
+    tujuanWh,
+    status,
+    project,
+    sortBy ='tanggal',
+    sortOrder = 'desc',
+    page = 1,
+    limit = 10
+  } = filters
+
+  const permintaan = await prisma.permintaan.findMany({
+    where: {
+      ...(tanggal && {tanggal: {equals: tanggal}}),
+      ...(tujuanWh && {tujuanWh: {contains: tujuanWh, mode: 'insensitive'}}),
+      ...(status && {status: {contains: status, mode: 'insensitive'}}),
+      ...(project && {project: {contains: project, mode: 'insensitive'}})
+    },
+    orderBy: {
+      [sortBy]: sortOrder
+    },
+    skip: (page - 1) * limit,
+    take: limit
+  }),
+  total = await prisma.permintaan.count({
+    where: {
+      ...(tanggal && {tanggal: {equals: tanggal}}),
+      ...(tujuanWh && {tujuanWh: {contains: tujuanWh, mode: 'insensitive'}}),
+      ...(status && {status: {contains: status, mode: 'insensitive'}}),
+      ...(project && {project: {contains: project, mode: 'insensitive'}}),
+      deletedAt: null
+    }
+  })
+
+  return {
+    data: permintaan,
+    meta : {
+      total,
+      page,
+      limit,
+      totalPage: Math.ceil(total / limit)
+    }
+  }
+}
+
+
+export const getPermintaanByIdService = async (id: string) => {
+  const permintaan = await prisma.permintaan.findUnique({
+    where: { id, deletedAt: null },
+    include: {
+      detail: true
+    }
+  })
+  return permintaan
+}

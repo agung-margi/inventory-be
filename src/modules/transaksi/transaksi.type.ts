@@ -56,3 +56,16 @@ export interface PermintaanType {
     qty: number;
   }[];
 }
+
+
+export interface PermintaanFilter {
+    id?: string,
+    tanggal?: string,
+    tujuanWh?:string,
+    status?: string,
+    project?: string,
+    sortBy?: 'tanggal' | 'tujuanWh' | 'status' | 'project'
+    sortOrder?: 'asc' | 'desc'
+    page?: number
+    limit?: number
+}

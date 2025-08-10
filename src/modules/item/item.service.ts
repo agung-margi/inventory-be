@@ -81,7 +81,7 @@ export const getItemByIdService = async (id: string) => {
     throw new Error('Item ID is required')
   } else {
     const item = await prisma.item.findUnique({
-      where: { id }
+      where: { id, deletedAt: null }
     })
     return {
       data: item
