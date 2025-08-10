@@ -47,7 +47,7 @@ export const createSession = async (req: Request, res: Response) => {
     res.cookie('token', result.accessToken,{
       httpOnly:true,
       secure:false,
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 1000 * 60 * 60 * 2 // 1 hari
     })
 
@@ -56,7 +56,7 @@ export const createSession = async (req: Request, res: Response) => {
     res.cookie('XSRF-TOKEN', csrfToken, {
       httpOnly: false,
       secure: false,
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 1000 * 60 * 60 * 2 // 1 hari
     })
     
