@@ -13,3 +13,16 @@ export default interface UserType {
   deletedAt?: Date
   deletedBy?: string
 }
+
+
+export interface UserFilter {
+  nama?: string
+  email?: string
+  kode_wh?: string
+  phone?: string
+  role?: string
+  sortBy?: 'nama' | 'kode_wh' | 'role'
+  sortOrder?: 'asc' | 'desc'
+  page?: number
+  limit?: number
+}

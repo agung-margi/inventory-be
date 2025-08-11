@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client'
-import UserType from './user.type'
+import UserType, { UserFilter } from './user.type'
 import { v4 as uuidv4 } from 'uuid'
 import { comparePassword, hashPassword } from '../../utils/hashing'
 import { signJWT, verifyJWT } from '../../utils/jwt'
@@ -72,17 +72,70 @@ export const refreshTokenService = async (refreshToken: string) => {
   return accessToken
 }
 
+export const getUserById = async (id: string) => {
+  if (!id) {
+    throw new Error('User ID is required')
+  } else {
+    const user = await prisma.user.findUnique({
+      where: { id, deletedAt: null }
+    })
+    return {
+      data: user
+    }
+  }
+}
 
-export const getUserById = async (id:string) => {
-  return await prisma.user.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      email: true,
-      nama: true,
-      role: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
-};
+export const getAllUserService = async (filters: UserFilter) => {
+  const { nama, kode_wh, role, sortBy = 'createdAt', sortOrder = 'desc', page = 1, limit = 10 } = filters
+  const skip = (page - 1) * limit
+
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({
+      where: {
+        ...(nama && { nama: { contains: nama, mode: 'insensitive' } }),
+        ...(role && { role }),
+        ...(kode_wh && { kode_wh: { contains: kode_wh, mode: 'insensitive' } })
+      },
+      orderBy: { [sortBy]: sortOrder },
+      skip,
+      take: limit,
+      select: {
+        id: true,
+        nama: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+        kodeWh: {
+          select: {
+            nama_wh: true
+          }
+        }
+      }
+    }),
+    prisma.user.count({
+      where: {
+        ...(nama && { nama: { contains: nama, mode: 'insensitive' } }),
+        ...(role && { role }),
+        ...(kode_wh && { kode_wh: { contains: kode_wh, mode: 'insensitive' } })
+      }
+    })
+  ])
+
+  // Opsional: kamu bisa transform data supaya nama warehouse masuk langsung ke property user
+  const data = users.map((user) => ({
+    ...user,
+    nama_warehouse: user.kodeWh?.nama_wh ?? null,
+    kodeWh: undefined // kalau mau hilangkan object kodeWh yang asli
+  }))
+
+  return {
+    data,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    }
+  }
+}

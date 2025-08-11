@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client'
 import { v4 as uuidv4 } from 'uuid'
 import { getNowWIB } from '../../utils/date'
 import {PengeluaranType, PenerimaanType, PermintaanType, PermintaanFilter} from './transaksi.type'
-import { generateDocId } from '../../utils/gemerateIDDoc'
+import { generateDocId, generatePermintaanId } from '../../utils/gemerateIDDoc'
 
 const prisma = new PrismaClient()
 
@@ -87,11 +87,14 @@ const pengeluaranId = await generateDocId(
   return newTransaksi
 }
 
+
+
 export const saveTransaksiPenerimaan = async (payload: PenerimaanType, userId: string) => {
   const newTransaksi = await prisma.$transaction(async (tx) => {
     // simpan header transaksi
     const header = await tx.penerimaan.create({
       data: {
+        id: uuidv4(),
         tanggal: getNowWIB(),
         tujuanWh: payload.warehouseId,
         sumber: payload.sumber,
@@ -147,11 +150,19 @@ export const saveTransaksiPenerimaan = async (payload: PenerimaanType, userId: s
   return newTransaksi
 }
 
+
+
+
 export const saveTransaksiPermintaan = async (payload: PermintaanType, userId: string) => {
+
+  const id = await generatePermintaanId();
+  console.log('Generated Permintaan ID:', id);
+
   const newTransaksi = await prisma.$transaction(async (tx) => {
     // simpan header transaksi
     const header = await tx.permintaan.create({
       data: {
+        id,
         tanggal: getNowWIB(),
         tujuanWh: payload.tujuanWh,
         pemintaId: userId,

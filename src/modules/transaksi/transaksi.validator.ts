@@ -36,6 +36,7 @@ export const PenerimaanValidation = (payload: PenerimaanType) => {
 
 export const PermintaanValidation = (payload: PermintaanType) => {
   const schema = Joi.object({
+    tanggal: Joi.date().required(),
     tujuanWh: Joi.string(),
     project: Joi.string().optional(),
     catatan: Joi.string().optional(),
