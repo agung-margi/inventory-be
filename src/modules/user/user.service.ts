@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { comparePassword, hashPassword } from '../../utils/hashing'
 import { signJWT, verifyJWT } from '../../utils/jwt'
 
+
 const prisma = new PrismaClient()
 
 export const saveUserService = async (payload: UserType) => {
@@ -15,7 +16,7 @@ export const saveUserService = async (payload: UserType) => {
   if (userExist) throw new Error('Email telah terdaftar')
 
   // compare password with confirmPassword
-  if (payload.password !== payload.confirm_password) {
+  if (payload.password !== payload.confirmPassword) {
     throw new Error('Password dan Konfirmasi Password harus sesuai')
   }
 
@@ -25,11 +26,11 @@ export const saveUserService = async (payload: UserType) => {
   const newUser = await prisma.user.create({
     data: {
       id: uuidv4(),
-      nama: '',
+      nama: payload.nama,
       email: payload.email,
-      phone: '',
+      phone: payload.phone,
       password: hashedPassword,
-      role: 'user',
+      role: payload.role,
       createdBy: 'system'
     }
   })

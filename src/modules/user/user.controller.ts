@@ -6,8 +6,9 @@ import crypto from 'crypto'
 export const registerUser = async (req: Request, res: Response) => {
   try {
     const { error, value } = createUserValidation(req.body)
-    //   console.log(req.body)
+      console.log(req.body)
     if (error) {
+      
       return res.status(400).json({
         status: false,
         statusCode: 400,

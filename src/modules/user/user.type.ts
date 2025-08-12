@@ -1,11 +1,11 @@
 export default interface UserType {
   id: string
-  name?: string
+  nama: string
   email: string
-  phone?: string
+  phone: string
   password: string
-  confirm_password?: string
-  isAdmin: boolean
+  confirmPassword: string
+  role: string
   createdAt: Date
   createdBy: string
   updatedAt?: Date
