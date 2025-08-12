@@ -15,6 +15,12 @@ export const saveUserService = async (payload: UserType) => {
   })
   if (userExist) throw new Error('Email telah terdaftar')
 
+  const phoneExist = await prisma.user.findFirst({
+    where: { phone: payload.phone },
+    select: { id: true }
+  })
+  if (phoneExist) throw new Error('Nomor telepon telah terdaftar')
+  
   // compare password with confirmPassword
   if (payload.password !== payload.confirmPassword) {
     throw new Error('Password dan Konfirmasi Password harus sesuai')
