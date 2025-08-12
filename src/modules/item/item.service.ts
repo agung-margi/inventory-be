@@ -6,6 +6,30 @@ import { getNowWIB } from '../../utils/date'
 const prisma = new PrismaClient()
 
 export const createItemService = async (payload: ItemType, userId: string) => {
+  
+  const existingItem = await prisma.item.findUnique({
+    where: {
+      designator: payload.designator
+    }
+  })
+
+  if (existingItem) {
+    throw new Error('Item dengan designator ini sudah ada')
+  }
+
+  const existingItemByName = await prisma.item.findUnique({
+    where: {
+      nama_item: payload.nama_item
+    }
+  })
+
+  if (existingItemByName) {
+    throw new Error('Item dengan nama ini sudah ada')
+  }
+
+  if (existingItem) {
+    throw new Error('Item dengan designator ini sudah ada')
+  }
 
     const newItem =  await prisma.item.create({
         data : {
