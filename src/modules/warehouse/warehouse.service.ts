@@ -34,7 +34,12 @@ return newKodeWH
 
 
 export const createWHService = async (payload: WarehouseType, userId: string) => {
-    const kode_wh = await generateKodeWH()
+  const existingNameWH = await prisma.warehouse.findFirst({
+    where: { nama_wh: payload.nama_wh }
+  })
+  if (existingNameWH) throw new Error('Nama warehouse sudah ada')
+    
+  const kode_wh = await generateKodeWH()
 
     const newWarehouse =  await prisma.warehouse.create({
         data : {
