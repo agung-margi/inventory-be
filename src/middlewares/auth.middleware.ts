@@ -5,6 +5,7 @@ import { verifyJWT } from "../utils/jwt"; // ini handle RS256 atau HS256
 interface UserPayload {
   id: number;
   role?: string;
+  kode_wh?: string;
 }
 // Extend Express Request interface to include 'user'
 declare global {

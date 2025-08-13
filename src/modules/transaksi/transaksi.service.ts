@@ -2,21 +2,26 @@ import { PrismaClient } from '@prisma/client'
 import { v4 as uuidv4 } from 'uuid'
 import { getNowWIB } from '../../utils/date'
 import {PengeluaranType, PenerimaanType, PermintaanType, PermintaanFilter} from './transaksi.type'
-import { generateDocId, generatePermintaanId } from '../../utils/gemerateIDDoc'
+import { generateDocId, generateOutID, generatePermintaanId } from '../../utils/gemerateIDDoc'
 
 const prisma = new PrismaClient()
 
 export const TransaksiOutService = async (payload: PengeluaranType, userId: string) => {
 
   
-const pengeluaranId = await generateDocId(
-  'OUT', 
-  payload.warehouseId, 
-  'pengeluaran'
-);
-
   const newTransaksi = await prisma.$transaction(async (tx) => {
-    // 1. VALIDASI SEMUA ITEM
+
+     // 1. Ambil permintaan terkait
+    const permintaan = await tx.permintaan.findUnique({
+      where: { id: payload.permintaanId, deletedAt: null },
+      select: { pemintaId: true }
+    });
+
+    if (!permintaan) {
+      throw new Error(`Permintaan dengan ID ${payload.permintaanId} tidak ditemukan`);
+    }
+
+    // 2. VALIDASI SEMUA ITEM
     for (const item of payload.items) {
       const stock = await tx.stock.findFirst({
         where: {
@@ -39,14 +44,14 @@ const pengeluaranId = await generateDocId(
     // simpan header transaksi
     const header = await tx.pengeluaran.create({
       data: {
-        pengeluaranId: pengeluaranId,
+        pengeluaranId: await generateOutID(),
         tanggal: getNowWIB(),
         warehouseId : payload.warehouseId,
         petugasId: userId,
-        penerimaId: payload.penerimaId,
+        penerimaId: permintaan.pemintaId,
         keterangan: payload.keterangan,
         permintaanId: payload.permintaanId,
-        status: 'Completed',
+        status: 'completed',
         createdAt: getNowWIB(),
         createdBy: userId
       }
@@ -81,6 +86,16 @@ const pengeluaranId = await generateDocId(
         }
       })
     }
+
+    // 5. UPDATE STATUS PERMINTAAN MENJADI CLOSED
+    await tx.permintaan.update({
+      where: { id: payload.permintaanId },
+      data: {
+        status: "completed",
+        updatedAt: getNowWIB(),
+        updatedBy: userId
+      }
+    });
 
     return header
   })
@@ -204,6 +219,17 @@ export const approvePermintaanService = async (id: string, userId: string) => {
   return updatedTransaksi
 }
 
+export const completePermintaanService = async (id: string, userId: string) => {
+  const updatedTransaksi = await prisma.$transaction(async (tx) => {
+    // Update the status of the permintaan
+    const permintaan = await tx.permintaan.update({
+      where: { id },
+      data: { status: 'completed', updatedAt: getNowWIB(), updatedBy: userId }
+    })
+    return permintaan
+  })
+  return updatedTransaksi
+}
 export const getAllPermintaanService = async (filters: PermintaanFilter) =>{
   const {
     id,
@@ -256,7 +282,13 @@ export const getPermintaanByIdService = async (id: string) => {
   const permintaan = await prisma.permintaan.findUnique({
     where: { id, deletedAt: null },
     include: {
-      detail: true
+      detail: true,
+      peminta: {
+        select: {
+          id: true,
+          nama: true
+        }
+      }
     }
   })
   return permintaan

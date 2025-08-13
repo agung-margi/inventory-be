@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { createTransaksiOutValidation, PenerimaanValidation, PermintaanValidation } from './transaksi.validator'
 import { approvePermintaanService, getAllPermintaanService, getPermintaanByIdService, saveTransaksiPenerimaan, saveTransaksiPermintaan, TransaksiOutService } from './transaksi.service'
+import { Console } from 'console'
 
 export const createTransaksiOut = async (req: Request, res: Response) => {
     const {error, value} = createTransaksiOutValidation(req.body)
@@ -25,6 +26,7 @@ try {
       message: 'Transaksi berhasil dibuat'
     })
   } catch (error) {
+    console.log(error);
     res.status(422).json({
       status: false,
       statusCode: 422,

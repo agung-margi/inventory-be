@@ -53,10 +53,10 @@ export const loginService = async (payload: UserType) => {
   const isValid = await comparePassword(payload.password, user.password)
 
   if (!isValid) throw new Error('User dan Password Salah')
-  const { id, name, role } = user
+  const { id, name, role,kode_wh } = user
 
-  const accessToken = signJWT({ id, name, role }, { expiresIn: '1h' })
-  const refreshToken = signJWT({ id, name, role }, { expiresIn: '1d' })
+  const accessToken = signJWT({ id, name, role, kode_wh }, { expiresIn: '1h' })
+  const refreshToken = signJWT({ id, name, role, kode_wh }, { expiresIn: '1d' })
 
   return { accessToken, refreshToken }
 }

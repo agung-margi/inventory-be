@@ -4,9 +4,10 @@ import { PenerimaanType, PengeluaranType, PermintaanType } from './transaksi.typ
 export const createTransaksiOutValidation = (payload: PengeluaranType) => {
   const schema = Joi.object({
     warehouseId : Joi.string().required().min(3),
-    petugasId : Joi.string().required(),
     permintaanId : Joi.string().required(),
-    penerimaId : Joi.array().items(
+    penerimaId: Joi.string().required(),
+    keterangan: Joi.string().optional().allow(''),
+    items : Joi.array().items(
     Joi.object({
       designator: Joi.string().required(),
       qty: Joi.number().positive().required()
