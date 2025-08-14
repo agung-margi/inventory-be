@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { createTransaksiOutValidation, PenerimaanValidation, PermintaanValidation, TAGValidation } from './transaksi.validator'
-import { approvePermintaanService, confirmPenerimaanTAGService, createTAGService, getAllPermintaanService, getPermintaanByIdService, saveTransaksiPenerimaan, saveTransaksiPermintaan, TransaksiOutService } from './transaksi.service'
+import { approvePermintaanService, confirmPenerimaanTAGService, createTAGService, getAllPenerimaanService, getAllPengeluaranService, getAllPermintaanService, getAllTAGService, getPermintaanByIdService, saveTransaksiPenerimaan, saveTransaksiPermintaan, TransaksiOutService } from './transaksi.service'
 import { Console } from 'console'
 
 export const createTransaksiOut = async (req: Request, res: Response) => {
@@ -220,7 +220,6 @@ export const createTAG = async (req: Request, res: Response) => {
   }
 }
 
-
 export const confirmTAG = async (req: Request, res: Response) => {
   const {error, value} = PenerimaanValidation(req.body)
 
@@ -254,3 +253,138 @@ export const confirmTAG = async (req: Request, res: Response) => {
   }
 }
 
+
+export const getAllTAG = async(req: Request, res: Response) => {
+  const {
+    params: {id}
+  } = req
+
+  const userId = res.locals.user.id
+  if (!userId) {
+    return res.status(401).json({ status: false, statusCode: 401, message: 'Unathorized' })
+  }
+
+  try {
+const filters={
+  tanggal: req.query.tanggal ? new Date(String(req.query.tanggal)) : undefined,
+  dariWh: req.query.dariWh ? String(req.query.dariWh) : undefined,
+  keWh: req.query.keWh ? String(req.query.keWh) : undefined,
+  mover: req.query.mover ? String(req.query.mover) : undefined,
+  status: req.query.status ? String(req.query.status) : undefined,
+  sortBy: req.query.sortBy as any,
+  sortOrder: req.query.sortOrder as any,
+  page: req.query.page ? parseInt(req.query.page as string) : 1,
+      limit: req.query.limit ? parseInt(req.query.limit as string) : 10
+}
+    
+    const result = await getAllTAGService(filters)
+
+    if (!result) {
+      return res.status(404).json({
+        status: false,
+        statusCode: 404,
+        message: 'Data TAG tidak ditemukan'
+      })
+    }
+
+    res.status(200).json({
+      status: true,
+      statusCode: 200,
+      data: result
+    })
+
+  } catch (error) {
+    res.status(422).json({
+      status: false,
+      statusCode: 422,
+      message: error instanceof Error ? error.message : 'Unknown error'
+    })
+  }
+}
+
+export const getAllPengeluaran = async (req: Request, res: Response) => {
+  const userId = res.locals.user.id
+  if (!userId) {
+    return res.status(401).json({ status: false, statusCode: 401, message: 'Unathorized' })
+  }
+
+  try {
+    const filters = {
+      tanggal: req.query.tanggal ? new Date(String(req.query.tanggal)) : undefined,
+      warehouseId: req.query.warehouseId ? String(req.query.warehouseId) : undefined,
+      petugasId: req.query.petugasId ? String(req.query.petugasId) : undefined,
+      penerimaId: req.query.penerimaId ? String(req.query.penerimaId) : undefined,
+      keterangan: req.query.keterangan ? String(req.query.keterangan) : undefined,
+      sortBy: req.query.sortBy as any,
+      sortOrder: req.query.sortOrder as any,
+      page: req.query.page ? parseInt(req.query.page as string) : 1,
+      limit: req.query.limit ? parseInt(req.query.limit as string) : 10
+    }
+
+    const result = await getAllPengeluaranService(filters)
+
+    if (!result) {
+      return res.status(404).json({
+        status: false,
+        statusCode: 404,
+        message: 'Data pengeluaran tidak ditemukan'
+      })
+    }
+
+    res.status(200).json({
+      status: true,
+      statusCode: 200,
+      data: result
+    })
+
+  } catch (error) {
+    res.status(422).json({
+      status: false,
+      statusCode: 422,
+      message: error instanceof Error ? error.message : 'Unknown error'
+    })
+  }
+}
+
+export const getAllPenerimaan = async (req: Request, res: Response) => {
+  const userId = res.locals.user.id
+  if (!userId) {
+    return res.status(401).json({ status: false, statusCode: 401, message: 'Unathorized' })
+  }
+
+  try {
+    const filters = {
+      tanggal: req.query.tanggal ? new Date(String(req.query.tanggal)) : undefined,
+      pengirimanId: req.query.pengirimanId ? String(req.query.pengirimanId) : undefined,
+      jenis: req.query.jenis ? String(req.query.jenis) : undefined,
+      status: req.query.status ? String(req.query.status) : undefined,
+      sortBy: req.query.sortBy as any,
+      sortOrder: req.query.sortOrder as any,
+      page: req.query.page ? parseInt(req.query.page as string) : 1,
+      limit: req.query.limit ? parseInt(req.query.limit as string) : 10
+    }
+
+    const result = await getAllPenerimaanService(filters)
+
+    if (!result) {
+      return res.status(404).json({
+        status: false,
+        statusCode: 404,
+        message: 'Data penerimaan tidak ditemukan'
+      })
+    }
+
+    res.status(200).json({
+      status: true,
+      statusCode: 200,
+      data: result
+    })
+
+  } catch (error) {
+    res.status(422).json({
+      status: false,
+      statusCode: 422,
+      message: error instanceof Error ? error.message : 'Unknown error'
+    })
+  }
+}

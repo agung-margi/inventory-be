@@ -14,7 +14,8 @@ export const createUserValidation = (payload: UserType) => {
       'any.only': 'Konfirmasi Password harus sesuai'
     }),
     role: Joi.string().valid('manager', 'admin', 'user','staff-so').default('user'),
-    phone: Joi.string().min(10).max(15).required()
+    phone: Joi.string().min(10).max(15).required(),
+    kodeWh: Joi.string().optional().allow(''),
   })
   return schema.validate(payload)
 }

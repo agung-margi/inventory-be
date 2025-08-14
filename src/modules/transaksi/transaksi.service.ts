@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { v4 as uuidv4 } from 'uuid'
 import { getNowWIB } from '../../utils/date'
-import { PengeluaranType, PenerimaanType, PermintaanType, PermintaanFilter, TAGType } from './transaksi.type'
+import { PengeluaranType, PenerimaanType, PermintaanType, PermintaanFilter, TAGType, TAGFilter, PengeluaranFilter, PenerimaanFilter } from './transaksi.type'
 import { generateDocId, generateOutID, generatePermintaanId, generateTAGID } from '../../utils/gemerateIDDoc'
 
 const prisma = new PrismaClient()
@@ -441,4 +441,155 @@ export const confirmPenerimaanTAGService = async (payload: PenerimaanType, userI
 
     return { status: true, message: 'Penerimaan antar gudang berhasil dikonfirmasi' }
   })
+}
+
+
+export const getAllTAGService = async (filters: TAGFilter) => {
+  const {
+    dariWh,
+    keWh,
+    mover,
+    status,
+    tanggal,
+    sortBy = 'tanggal',
+    sortOrder = 'desc',
+    page = 1,
+    limit = 10
+  } = filters
+
+  const pengiriman = await prisma.pengiriman.findMany({
+      where: {
+        ...(tanggal && { tanggal: { equals: tanggal } }),
+        ...(dariWh && { dariWh: { contains: dariWh, mode: 'insensitive' } }),
+        ...(keWh && { keWh: { contains: keWh, mode: 'insensitive' } }),
+        ...(mover && { mover: { contains: mover, mode: 'insensitive' } }),
+        ...(status && { status: { contains: status, mode: 'insensitive' } }),
+        deletedAt: null
+      },
+      orderBy: {
+        [sortBy]: sortOrder
+      },
+      skip: (page - 1) * limit,
+      take: limit
+    }),
+    total = await prisma.pengiriman.count({
+      where: {
+         ...(tanggal && { tanggal: { equals: tanggal } }),
+        ...(dariWh && { dariWh: { contains: dariWh, mode: 'insensitive' } }),
+        ...(keWh && { keWh: { contains: keWh, mode: 'insensitive' } }),
+        ...(mover && { mover: { contains: mover, mode: 'insensitive' } }),
+        ...(status && { status: { contains: status, mode: 'insensitive' } }),
+        deletedAt: null
+      }
+    })
+
+  return {
+    data: pengiriman,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPage: Math.ceil(total / limit)
+    }
+  }
+}
+
+export const getAllPengeluaranService = async (filters: PengeluaranFilter) => {
+  const {
+    tanggal,
+    warehouseId,
+    petugasId,
+    penerimaId,
+    keterangan,
+    status,
+    sortBy = 'tanggal',
+    sortOrder = 'desc',
+    page = 1,
+    limit = 10
+  } = filters
+
+  const pengiriman = await prisma.pengiriman.findMany({
+      where: {
+        ...(warehouseId && { warehouseId: { contains: warehouseId, mode: 'insensitive' } }),
+        ...(petugasId && { petugasId: { contains: petugasId, mode: 'insensitive' } }),
+        ...(penerimaId && { penerimaId: { contains: penerimaId, mode: 'insensitive' } }),
+        ...(keterangan && { keterangan: { contains: keterangan, mode: 'insensitive' } }),
+        ...(status && { status: { contains: status, mode: 'insensitive' } }),
+        deletedAt: null
+      },
+      orderBy: {
+        [sortBy]: sortOrder
+      },
+      skip: (page - 1) * limit,
+      take: limit
+    }),
+    total = await prisma.pengiriman.count({
+      where: {
+         ...(tanggal && { tanggal: { equals: tanggal } }),
+        ...(warehouseId && { warehouseId: { contains: warehouseId, mode: 'insensitive' } }),
+        ...(petugasId && { petugasId: { contains: petugasId, mode: 'insensitive' } }),
+        ...(penerimaId && { penerimaId: { contains: penerimaId, mode: 'insensitive' } }),
+        ...(keterangan && { keterangan: { contains: keterangan, mode: 'insensitive' } }),
+        ...(status && { status: { contains: status, mode: 'insensitive' } }),
+        deletedAt: null
+      }
+    })
+
+  return {
+    data: pengiriman,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPage: Math.ceil(total / limit)
+    }
+  }
+}
+
+
+export const getAllPenerimaanService = async (filters: PenerimaanFilter) => {
+  const {
+    tanggal,
+    pengirimanId,
+    jenis,
+    status,
+    sortBy = 'tanggal',
+    sortOrder = 'desc',
+    page = 1,
+    limit = 10
+  } = filters
+
+  const penerimaan = await prisma.penerimaan.findMany({
+      where: {
+        ...(tanggal && { tanggal: { equals: tanggal } }),
+        ...(pengirimanId && { pengirimanId: { contains: pengirimanId, mode: 'insensitive' } }),
+        ...(jenis && { jenis: { contains: jenis, mode: 'insensitive' } }),
+        ...(status && { status: { contains: status, mode: 'insensitive' } }),
+        deletedAt: null
+      },
+      orderBy: {
+        [sortBy]: sortOrder
+      },
+      skip: (page - 1) * limit,
+      take: limit
+    }),
+    total = await prisma.penerimaan.count({
+      where: {
+         ...(tanggal && { tanggal: { equals: tanggal } }),
+        ...(pengirimanId && { pengirimanId: { contains: pengirimanId, mode: 'insensitive' } }),
+        ...(jenis && { jenis: { contains: jenis, mode: 'insensitive' } }),
+        ...(status && { status: { contains: status, mode: 'insensitive' } }),
+        deletedAt: null
+      }
+    })
+
+  return {
+    data: penerimaan,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPage: Math.ceil(total / limit)
+    }
+  }
 }

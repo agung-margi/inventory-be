@@ -37,6 +37,7 @@ export const saveUserService = async (payload: UserType) => {
       phone: payload.phone,
       password: hashedPassword,
       role: payload.role,
+      kode_wh: payload.kodeWh || null, // jika tidak ada kode_wh, set null
       createdBy: 'system'
     }
   })

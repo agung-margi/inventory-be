@@ -17,6 +17,19 @@ export interface PengeluaranType {
   }[]
 }
 
+export interface PengeluaranFilter {
+  tanggal?: Date
+  warehouseId?: string
+  petugasId?: string
+  penerimaId?: string
+  keterangan?: string
+  status?: string
+  sortBy?: 'tanggal' | 'tujuanWh' | 'status' | 'project'
+  sortOrder?: 'asc' | 'desc'
+  page?: number
+  limit?: number
+}
+
 export interface PenerimaanType {
   id: number
   tanggal: Date
@@ -38,6 +51,20 @@ export interface PenerimaanType {
     satuan?: string
   }[]
 }
+
+export interface PenerimaanFilter {
+  tanggal?: Date
+  pengirimanId?: string
+  jenis?: string
+  status?: string
+  createdAt?: Date
+  createdBy?: string
+  sortBy?: 'tanggal' | 'pengirimanId' | 'jenis' | 'status'
+  sortOrder?: 'asc' | 'desc'
+  page?: number
+  limit?: number
+}
+
 
 export interface PermintaanType {
   id: number
@@ -82,4 +109,17 @@ export interface TAGType {
     qty: number
     keterangan?: string
   }[]
+}
+
+
+export interface TAGFilter {
+  dariWh?: string
+  keWh?: string
+  mover?: string
+  status?: string
+  tanggal?: Date
+  sortBy?: 'tangga'|'dariWh' | 'keWh' | 'mover' | 'status'
+  sortOrder?: 'asc' | 'desc'
+  page?: number
+  limit?: number
 }

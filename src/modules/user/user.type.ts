@@ -6,6 +6,7 @@ export default interface UserType {
   password: string
   confirmPassword: string
   role: string
+  kodeWh: string
   createdAt: Date
   createdBy: string
   updatedAt?: Date
