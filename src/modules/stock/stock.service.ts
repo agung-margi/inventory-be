@@ -5,7 +5,17 @@ import { StockFilter, StockType } from './stock.type'
 const prisma = new PrismaClient()
 
 export const getAllStockService = async (filters: StockFilter) => {
-  const { kode_wh, designator,satuan, available, transit, sortBy = 'createdAt', sortOrder = 'desc', page = 1, limit = 10 } = filters
+  const {
+    kode_wh,
+    designator,
+    satuan,
+    available,
+    transit,
+    sortBy = 'createdAt',
+    sortOrder = 'desc',
+    page = 1,
+    limit = 10
+  } = filters
 
   const skip = (page - 1) * limit
 
@@ -13,10 +23,10 @@ export const getAllStockService = async (filters: StockFilter) => {
     prisma.stock.findMany({
       where: {
         ...(kode_wh && { kode_wh: { contains: kode_wh, mode: 'insensitive' } }),
-        ...(designator && { designator: { contains: designator, mode: 'insensitive' }}),
-        ...(satuan && { satuan: { contains: satuan, mode: 'insensitive' }}),
-        ...(available && { available: { gte: available  }}),
-        ...(transit && { transit: { gte: transit }}),
+        ...(designator && { designator: { contains: designator, mode: 'insensitive' } }),
+        ...(satuan && { satuan: { contains: satuan, mode: 'insensitive' } }),
+        ...(available && { available: { gte: available } }),
+        ...(transit && { transit: { gte: transit } }),
         deletedAt: null
       },
       orderBy: { [sortBy]: sortOrder },
@@ -27,10 +37,10 @@ export const getAllStockService = async (filters: StockFilter) => {
     prisma.warehouse.count({
       where: {
         ...(kode_wh && { kode_wh: { contains: kode_wh, mode: 'insensitive' } }),
-        ...(designator && { designator: { contains: designator, mode: 'insensitive' }}),
-        ...(satuan && { satuan: { contains: satuan, mode: 'insensitive' }}),
-        ...(available && { available: { gte: available , mode: 'insensitive' }}),
-        ...(transit && { transit: { gte: transit , mode: 'insensitive' }}),
+        ...(designator && { designator: { contains: designator, mode: 'insensitive' } }),
+        ...(satuan && { satuan: { contains: satuan, mode: 'insensitive' } }),
+        ...(available && { available: { gte: available, mode: 'insensitive' } }),
+        ...(transit && { transit: { gte: transit, mode: 'insensitive' } }),
         deletedAt: null
       }
     })
@@ -45,4 +55,3 @@ export const getAllStockService = async (filters: StockFilter) => {
     }
   }
 }
-
