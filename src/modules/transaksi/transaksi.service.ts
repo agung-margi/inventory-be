@@ -102,8 +102,6 @@ export const TransaksiOutService = async (payload: PengeluaranType, userId: stri
   return newTransaksi
 }
 
-
-
 export const saveTransaksiPenerimaan = async (payload: PenerimaanType, userId: string) => {
   const newTransaksi = await prisma.$transaction(async (tx) => {
     // simpan header transaksi
@@ -164,9 +162,6 @@ export const saveTransaksiPenerimaan = async (payload: PenerimaanType, userId: s
   })
   return newTransaksi
 }
-
-
-
 
 export const saveTransaksiPermintaan = async (payload: PermintaanType, userId: string) => {
 
@@ -276,7 +271,6 @@ export const getAllPermintaanService = async (filters: PermintaanFilter) =>{
     }
   }
 }
-
 
 export const getPermintaanByIdService = async (id: string) => {
   const permintaan = await prisma.permintaan.findUnique({
