@@ -1,24 +1,21 @@
 import { PrismaClient } from '@prisma/client'
 import { v4 as uuidv4 } from 'uuid'
 import { getNowWIB } from '../../utils/date'
-import {PengeluaranType, PenerimaanType, PermintaanType, PermintaanFilter} from './transaksi.type'
-import { generateDocId, generateOutID, generatePermintaanId } from '../../utils/gemerateIDDoc'
+import { PengeluaranType, PenerimaanType, PermintaanType, PermintaanFilter, TAGType } from './transaksi.type'
+import { generateDocId, generateOutID, generatePermintaanId, generateTAGID } from '../../utils/gemerateIDDoc'
 
 const prisma = new PrismaClient()
 
 export const TransaksiOutService = async (payload: PengeluaranType, userId: string) => {
-
-  
   const newTransaksi = await prisma.$transaction(async (tx) => {
-
-     // 1. Ambil permintaan terkait
+    // 1. Ambil permintaan terkait
     const permintaan = await tx.permintaan.findUnique({
       where: { id: payload.permintaanId, deletedAt: null },
       select: { pemintaId: true }
-    });
+    })
 
     if (!permintaan) {
-      throw new Error(`Permintaan dengan ID ${payload.permintaanId} tidak ditemukan`);
+      throw new Error(`Permintaan dengan ID ${payload.permintaanId} tidak ditemukan`)
     }
 
     // 2. VALIDASI SEMUA ITEM
@@ -46,7 +43,7 @@ export const TransaksiOutService = async (payload: PengeluaranType, userId: stri
       data: {
         pengeluaranId: await generateOutID(),
         tanggal: getNowWIB(),
-        warehouseId : payload.warehouseId,
+        warehouseId: payload.warehouseId,
         petugasId: userId,
         penerimaId: permintaan.pemintaId,
         keterangan: payload.keterangan,
@@ -91,11 +88,11 @@ export const TransaksiOutService = async (payload: PengeluaranType, userId: stri
     await tx.permintaan.update({
       where: { id: payload.permintaanId },
       data: {
-        status: "completed",
+        status: 'completed',
         updatedAt: getNowWIB(),
         updatedBy: userId
       }
-    });
+    })
 
     return header
   })
@@ -156,7 +153,7 @@ export const saveTransaksiPenerimaan = async (payload: PenerimaanType, userId: s
           createdAt: getNowWIB(),
           createdBy: userId
         }
-      });
+      })
     }
     return header
   })
@@ -164,9 +161,8 @@ export const saveTransaksiPenerimaan = async (payload: PenerimaanType, userId: s
 }
 
 export const saveTransaksiPermintaan = async (payload: PermintaanType, userId: string) => {
-
-  const id = await generatePermintaanId();
-  console.log('Generated Permintaan ID:', id);
+  const id = await generatePermintaanId()
+  console.log('Generated Permintaan ID:', id)
 
   const newTransaksi = await prisma.$transaction(async (tx) => {
     // simpan header transaksi
@@ -225,45 +221,45 @@ export const completePermintaanService = async (id: string, userId: string) => {
   })
   return updatedTransaksi
 }
-export const getAllPermintaanService = async (filters: PermintaanFilter) =>{
+export const getAllPermintaanService = async (filters: PermintaanFilter) => {
   const {
     id,
     tanggal,
     tujuanWh,
     status,
     project,
-    sortBy ='tanggal',
+    sortBy = 'tanggal',
     sortOrder = 'desc',
     page = 1,
     limit = 10
   } = filters
 
   const permintaan = await prisma.permintaan.findMany({
-    where: {
-      ...(tanggal && {tanggal: {equals: tanggal}}),
-      ...(tujuanWh && {tujuanWh: {contains: tujuanWh, mode: 'insensitive'}}),
-      ...(status && {status: {contains: status, mode: 'insensitive'}}),
-      ...(project && {project: {contains: project, mode: 'insensitive'}})
-    },
-    orderBy: {
-      [sortBy]: sortOrder
-    },
-    skip: (page - 1) * limit,
-    take: limit
-  }),
-  total = await prisma.permintaan.count({
-    where: {
-      ...(tanggal && {tanggal: {equals: tanggal}}),
-      ...(tujuanWh && {tujuanWh: {contains: tujuanWh, mode: 'insensitive'}}),
-      ...(status && {status: {contains: status, mode: 'insensitive'}}),
-      ...(project && {project: {contains: project, mode: 'insensitive'}}),
-      deletedAt: null
-    }
-  })
+      where: {
+        ...(tanggal && { tanggal: { equals: tanggal } }),
+        ...(tujuanWh && { tujuanWh: { contains: tujuanWh, mode: 'insensitive' } }),
+        ...(status && { status: { contains: status, mode: 'insensitive' } }),
+        ...(project && { project: { contains: project, mode: 'insensitive' } })
+      },
+      orderBy: {
+        [sortBy]: sortOrder
+      },
+      skip: (page - 1) * limit,
+      take: limit
+    }),
+    total = await prisma.permintaan.count({
+      where: {
+        ...(tanggal && { tanggal: { equals: tanggal } }),
+        ...(tujuanWh && { tujuanWh: { contains: tujuanWh, mode: 'insensitive' } }),
+        ...(status && { status: { contains: status, mode: 'insensitive' } }),
+        ...(project && { project: { contains: project, mode: 'insensitive' } }),
+        deletedAt: null
+      }
+    })
 
   return {
     data: permintaan,
-    meta : {
+    meta: {
       total,
       page,
       limit,
@@ -286,4 +282,163 @@ export const getPermintaanByIdService = async (id: string) => {
     }
   })
   return permintaan
+}
+
+export const createTAGService = async (payload: TAGType, userId: string) => {
+  const newTAG = await prisma.$transaction(async (tx) => {
+    // 1. Buat pengiriman + detail (nested create)
+    const tag = await tx.pengiriman.create({
+      data: {
+        id: uuidv4(),
+        pengirimanId: await generateTAGID(),
+        dariWh: payload.dariWh,
+        keWh: payload.keWh,
+        petugasId: payload.petugasId,
+        mover: payload.mover,
+        status: payload.status,
+        catatan: payload.catatan,
+        tanggal: payload.tanggal,
+        createdAt: getNowWIB(),
+        createdBy: userId,
+        detail: {
+          create: payload.items.map((item) => ({
+            designator: item.designator,
+            qty: item.qty,
+            keterangan: item.keterangan,
+            createdAt: getNowWIB(),
+            createdBy: userId
+          }))
+        }
+      },
+      include: { detail: true }
+    })
+
+    // 2. Update stok untuk setiap item (di warehouse pengirim saja)
+    for (const item of payload.items) {
+      // Cek stok asal
+      const stockAsal = await tx.stock.findUnique({
+        where: {
+          kode_wh_designator: {
+            kode_wh: payload.dariWh,
+            designator: item.designator
+          }
+        }
+      })
+
+      if (!stockAsal || stockAsal.available < item.qty) {
+        throw new Error(`Stok tidak cukup untuk ${item.designator} di ${payload.dariWh}`)
+      }
+
+      // Kurangi available, tambah transit di pengirim
+      await tx.stock.update({
+        where: {
+          kode_wh_designator: {
+            kode_wh: payload.dariWh,
+            designator: item.designator
+          }
+        },
+        data: {
+          available: { decrement: item.qty },
+          transit: { increment: item.qty }
+        }
+      })
+    }
+
+    return tag
+  })
+
+  return newTAG
+}
+
+export const confirmPenerimaanTAGService = async (payload: PenerimaanType, userId: string) => {
+  return prisma.$transaction(async (tx) => {
+    // 1. Ambil data pengiriman beserta detailnya
+    const pengiriman = await tx.pengiriman.findFirst({
+      where: {
+        pengirimanId: payload.pengirimanId,
+        keWh: payload.warehouseId,
+        dariWh: payload.sumber
+      },
+      include: { detail: true }
+    })
+
+    if (!pengiriman) {
+      throw new Error('Pengiriman tidak ditemukan')
+    }
+
+    if (payload.jenis !== 'antar gudang') {
+      throw new Error('Jenis pengiriman tidak sesuai')
+    }
+
+    // 2. Update stok
+    for (const item of pengiriman.detail) {
+      // Kurangi transit di pengirim
+      await tx.stock.update({
+        where: {
+          kode_wh_designator: {
+            kode_wh: pengiriman.dariWh,
+            designator: item.designator
+          }
+        },
+        data: {
+          transit: { decrement: item.qty }
+        }
+      })
+
+      // Tambah available di penerima
+      const stockTujuan = await tx.stock.findUnique({
+        where: {
+          kode_wh_designator: {
+            kode_wh: pengiriman.keWh,
+            designator: item.designator
+          }
+        }
+      })
+
+      if (stockTujuan) {
+        await tx.stock.update({
+          where: {
+            kode_wh_designator: {
+              kode_wh: pengiriman.keWh,
+              designator: item.designator
+            }
+          },
+          data: {
+            available: { increment: item.qty }
+          }
+        })
+      } else {
+        // Auto create kalau belum ada stok di penerima
+        const itemData = await tx.item.findUnique({
+          where: { designator: item.designator },
+          select: { satuan: true }
+        })
+
+        if (!itemData) throw new Error(`Item ${item.designator} tidak ditemukan`)
+
+        await tx.stock.create({
+          data: {
+            kode_wh: pengiriman.keWh,
+            designator: item.designator,
+            satuan: itemData.satuan,
+            available: item.qty,
+            transit: 0,
+            createdBy: userId
+          }
+        })
+      }
+    }
+
+    // 3. Update status pengiriman jadi DITERIMA
+    await tx.pengiriman.update({
+      where: { pengirimanId: pengiriman.pengirimanId },
+      data: {
+        status: 'completed',
+        updatedAt: getNowWIB(),
+        updatedBy: userId
+      }
+    })
+
+    return { status: true, message: 'Penerimaan antar gudang berhasil dikonfirmasi' }
+  })
 }

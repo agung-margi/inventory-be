@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import { requireAdmin, requireAuth } from '../../middlewares/auth.middleware'
+import { requireAdmin, requireAuth, requireStaffSO } from '../../middlewares/auth.middleware'
 import { getAllStock } from './stock.controller'
 
 
 export const StockRouter: Router = Router()
-StockRouter.get('/', requireAdmin, requireAuth, getAllStock)
+StockRouter.get('/', requireAdmin || requireStaffSO, requireAuth, getAllStock)

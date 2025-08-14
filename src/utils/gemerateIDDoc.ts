@@ -58,4 +58,19 @@ export async function generateOutID() {
 }
 
 
+export async function generateTAGID() {
+  const now = new Date();
+  const prefix =
+    "TAG" +
+    now.getFullYear().toString().slice(2) +
+    String(now.getMonth() + 1).padStart(2, "0") +
+    String(now.getDate()).padStart(2, "0");
+
+  // pakai millisecond biar nggak bentrok walau banyak request
+  const micro = String(now.getTime()); // timestamp dalam ms
+  return prefix + micro.slice(-6); // ambil 6 digit terakhir
+}
+
+
+
 

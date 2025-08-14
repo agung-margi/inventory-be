@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
-import { createTransaksiOutValidation, PenerimaanValidation, PermintaanValidation } from './transaksi.validator'
-import { approvePermintaanService, getAllPermintaanService, getPermintaanByIdService, saveTransaksiPenerimaan, saveTransaksiPermintaan, TransaksiOutService } from './transaksi.service'
+import { createTransaksiOutValidation, PenerimaanValidation, PermintaanValidation, TAGValidation } from './transaksi.validator'
+import { approvePermintaanService, confirmPenerimaanTAGService, createTAGService, getAllPermintaanService, getPermintaanByIdService, saveTransaksiPenerimaan, saveTransaksiPermintaan, TransaksiOutService } from './transaksi.service'
 import { Console } from 'console'
 
 export const createTransaksiOut = async (req: Request, res: Response) => {
@@ -187,3 +187,70 @@ export const approvePermintaan = async (req: Request, res: Response) => {
     })
   }
 }
+
+export const createTAG = async (req: Request, res: Response) => {
+  const { error, value } = TAGValidation(req.body)
+
+  if (error) {
+    return res.status(400).json({
+      status: false,
+      statusCode: 400,
+      message: error.details[0].message
+    })
+  }
+
+  try {
+    const userId = res.locals.user.id
+    if (!userId) {
+      return res.status(401).json({ status: false, statusCode: 401, message: 'Unathorized' })
+    }
+
+    await createTAGService(value, userId)
+    res.status(201).json({
+      status: true,
+      statusCode: 201,
+      message: 'TAG berhasil dibuat'
+    })
+  } catch (error) {
+    res.status(422).json({
+      status: false,
+      statusCode: 422,
+      message: error instanceof Error ? error.message : 'Unknown error'
+    })
+  }
+}
+
+
+export const confirmTAG = async (req: Request, res: Response) => {
+  const {error, value} = PenerimaanValidation(req.body)
+
+  if (error) {
+    return res.status(400).json({
+      status: false,
+      statusCode: 400,
+      message: error.details[0].message
+    })
+  }
+
+  try {
+    const userId = res.locals.user.id
+    if (!userId) {
+      return res.status(401).json({ status: false, statusCode: 401, message: 'Unathorized' })
+    }
+
+    await confirmPenerimaanTAGService(value, userId)
+    console.log(value)
+    res.status(201).json({
+      status: true,
+      statusCode: 201,
+      message: 'Penerimaan berhasil dibuat'
+    })
+  } catch (error) {
+    res.status(422).json({
+      status: false,
+      statusCode: 422,
+      message: error instanceof Error ? error.message : 'Unknown error'
+    })
+  }
+}
+

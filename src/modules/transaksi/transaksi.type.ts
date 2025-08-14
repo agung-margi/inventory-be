@@ -10,13 +10,12 @@ export interface PengeluaranType {
   createdAt: Date
   createdBy: string
   items: {
-    designator: string; 
-    qty: number;
-    keterangan?: string;
-    satuan?: string;
-  }[];
+    designator: string
+    qty: number
+    keterangan?: string
+    satuan?: string
+  }[]
 }
-
 
 export interface PenerimaanType {
   id: number
@@ -33,13 +32,12 @@ export interface PenerimaanType {
   createdAt: Date
   createdBy: string
   items: {
-    designator: string; 
-    qty: number;
-    keterangan?: string;
-    satuan?: string;
-  }[];
+    designator: string
+    qty: number
+    keterangan?: string
+    satuan?: string
+  }[]
 }
-
 
 export interface PermintaanType {
   id: number
@@ -52,20 +50,36 @@ export interface PermintaanType {
   createdAt: Date
   createdBy: string
   items: {
-    designator: string; 
-    qty: number;
-  }[];
+    designator: string
+    qty: number
+  }[]
 }
 
-
 export interface PermintaanFilter {
-    id?: string,
-    tanggal?: string,
-    tujuanWh?:string,
-    status?: string,
-    project?: string,
-    sortBy?: 'tanggal' | 'tujuanWh' | 'status' | 'project'
-    sortOrder?: 'asc' | 'desc'
-    page?: number
-    limit?: number
+  id?: string
+  tanggal?: string
+  tujuanWh?: string
+  status?: string
+  project?: string
+  sortBy?: 'tanggal' | 'tujuanWh' | 'status' | 'project'
+  sortOrder?: 'asc' | 'desc'
+  page?: number
+  limit?: number
+}
+
+export interface TAGType {
+  id: number
+  dariWh: string
+  keWh: string
+  petugasId: string
+  mover: string
+  status: string
+  catatan?: string
+  tanggal: Date
+  items: {
+    satuan: any
+    designator: string
+    qty: number
+    keterangan?: string
+  }[]
 }

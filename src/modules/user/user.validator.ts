@@ -13,7 +13,7 @@ export const createUserValidation = (payload: UserType) => {
     confirmPassword: Joi.any().valid(Joi.ref('password')).required().messages({
       'any.only': 'Konfirmasi Password harus sesuai'
     }),
-    role: Joi.string().valid('manager', 'admin', 'user').default('user'),
+    role: Joi.string().valid('manager', 'admin', 'user','staff-so').default('user'),
     phone: Joi.string().min(10).max(15).required()
   })
   return schema.validate(payload)
