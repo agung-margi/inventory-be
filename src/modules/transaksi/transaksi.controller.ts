@@ -1,19 +1,38 @@
 import { Request, Response } from 'express'
-import { createTransaksiOutValidation, PenerimaanValidation, PermintaanValidation, TAGValidation } from './transaksi.validator'
-import { approvePermintaanService, confirmPenerimaanTAGService, createTAGService, getAllPenerimaanService, getAllPengeluaranService, getAllPermintaanService, getAllTAGService, getPengeluaranByIdService, getPermintaanByIdService, saveTransaksiPenerimaan, saveTransaksiPermintaan, TransaksiOutService } from './transaksi.service'
+import {
+  createTransaksiOutValidation,
+  PenerimaanValidation,
+  PermintaanValidation,
+  TAGValidation
+} from './transaksi.validator'
+import {
+  approvePermintaanService,
+  confirmPenerimaanTAGService,
+  createTAGService,
+  getAllPenerimaanService,
+  getAllPengeluaranService,
+  getAllPermintaanService,
+  getAllTAGService,
+  getPengeluaranByIdService,
+  getPermintaanByIdService,
+  getTAGByid,
+  saveTransaksiPenerimaan,
+  saveTransaksiPermintaan,
+  TransaksiOutService
+} from './transaksi.service'
 import { Console } from 'console'
 
 export const createTransaksiOut = async (req: Request, res: Response) => {
-    const {error, value} = createTransaksiOutValidation(req.body)
+  const { error, value } = createTransaksiOutValidation(req.body)
 
-    if (error) {
+  if (error) {
     return res.status(400).json({
       status: false,
       statusCode: 400,
       message: error.details[0].message
     })
-}
-try {
+  }
+  try {
     const userId = res.locals.user.id
     if (!userId) {
       return res.status(401).json({ status: false, statusCode: 401, message: 'Unathorized' })
@@ -26,7 +45,7 @@ try {
       message: 'Transaksi berhasil dibuat'
     })
   } catch (error) {
-    console.log(error);
+    console.log(error)
     res.status(422).json({
       status: false,
       statusCode: 422,
@@ -36,7 +55,7 @@ try {
 }
 
 export const createPenerimaan = async (req: Request, res: Response) => {
-  const {error, value} = PenerimaanValidation(req.body)
+  const { error, value } = PenerimaanValidation(req.body)
 
   if (error) {
     return res.status(400).json({
@@ -68,7 +87,7 @@ export const createPenerimaan = async (req: Request, res: Response) => {
 }
 
 export const createPermintaan = async (req: Request, res: Response) => {
-   const {error, value} = PermintaanValidation(req.body)
+  const { error, value } = PermintaanValidation(req.body)
 
   if (error) {
     return res.status(400).json({
@@ -99,9 +118,9 @@ export const createPermintaan = async (req: Request, res: Response) => {
   }
 }
 
-export const getAllPermintaan = async(req: Request, res: Response) => {
+export const getAllPermintaan = async (req: Request, res: Response) => {
   const {
-    params: {id}
+    params: { id }
   } = req
 
   const userId = res.locals.user.id
@@ -110,7 +129,7 @@ export const getAllPermintaan = async(req: Request, res: Response) => {
   }
 
   try {
-    if(id) {
+    if (id) {
       const permintaan = await getPermintaanByIdService(id)
 
       if (!permintaan) {
@@ -128,17 +147,17 @@ export const getAllPermintaan = async(req: Request, res: Response) => {
         data: permintaan
       })
     }
-const filters={
-  tanggal: req.query.tanggal ? String(req.query.tanggal) : undefined,
-  tujuanWh: req.query.tujuanWh ? String(req.query.tujuanWh) : undefined,
-  status: req.query.status ? String(req.query.status) : undefined,
-  project: req.query.project ? String(req.query.project) : undefined,
-  sortBy: req.query.sortBy as any,
-  sortOrder: req.query.sortOrder as any,
-  page: req.query.page ? parseInt(req.query.page as string) : 1,
+    const filters = {
+      tanggal: req.query.tanggal ? String(req.query.tanggal) : undefined,
+      tujuanWh: req.query.tujuanWh ? String(req.query.tujuanWh) : undefined,
+      status: req.query.status ? String(req.query.status) : undefined,
+      project: req.query.project ? String(req.query.project) : undefined,
+      sortBy: req.query.sortBy as any,
+      sortOrder: req.query.sortOrder as any,
+      page: req.query.page ? parseInt(req.query.page as string) : 1,
       limit: req.query.limit ? parseInt(req.query.limit as string) : 10
-}
-    
+    }
+
     const result = await getAllPermintaanService(filters)
 
     if (!result) {
@@ -154,7 +173,6 @@ const filters={
       statusCode: 200,
       data: result
     })
-
   } catch (error) {
     res.status(422).json({
       status: false,
@@ -221,7 +239,7 @@ export const createTAG = async (req: Request, res: Response) => {
 }
 
 export const confirmTAG = async (req: Request, res: Response) => {
-  const {error, value} = PenerimaanValidation(req.body)
+  const { error, value } = PenerimaanValidation(req.body)
 
   if (error) {
     return res.status(400).json({
@@ -253,10 +271,9 @@ export const confirmTAG = async (req: Request, res: Response) => {
   }
 }
 
-
-export const getAllTAG = async(req: Request, res: Response) => {
+export const getAllTAG = async (req: Request, res: Response) => {
   const {
-    params: {id}
+    params: { id }
   } = req
 
   const userId = res.locals.user.id
@@ -265,18 +282,26 @@ export const getAllTAG = async(req: Request, res: Response) => {
   }
 
   try {
-const filters={
-  tanggal: req.query.tanggal ? new Date(String(req.query.tanggal)) : undefined,
-  dariWh: req.query.dariWh ? String(req.query.dariWh) : undefined,
-  keWh: req.query.keWh ? String(req.query.keWh) : undefined,
-  mover: req.query.mover ? String(req.query.mover) : undefined,
-  status: req.query.status ? String(req.query.status) : undefined,
-  sortBy: req.query.sortBy as any,
-  sortOrder: req.query.sortOrder as any,
-  page: req.query.page ? parseInt(req.query.page as string) : 1,
+    if (id) {
+      const tag = await getTAGByid(id)
+      if (!tag) {
+        return res.status(404).json({ status: false, statusCode: 404, message: 'TAG tidak ditemukan' })
+      }
+      return res.status(200).json({ status: true, statusCode: 200, data: tag })
+    }
+
+    const filters = {
+      tanggal: req.query.tanggal ? new Date(String(req.query.tanggal)) : undefined,
+      dariWh: req.query.dariWh ? String(req.query.dariWh) : undefined,
+      keWh: req.query.keWh ? String(req.query.keWh) : undefined,
+      mover: req.query.mover ? String(req.query.mover) : undefined,
+      status: req.query.status ? String(req.query.status) : undefined,
+      sortBy: req.query.sortBy as any,
+      sortOrder: req.query.sortOrder as any,
+      page: req.query.page ? parseInt(req.query.page as string) : 1,
       limit: req.query.limit ? parseInt(req.query.limit as string) : 10
-}
-    
+    }
+
     const result = await getAllTAGService(filters)
 
     if (!result) {
@@ -292,7 +317,6 @@ const filters={
       statusCode: 200,
       data: result
     })
-
   } catch (error) {
     res.status(422).json({
       status: false,
@@ -310,16 +334,16 @@ export const getAllPengeluaran = async (req: Request, res: Response) => {
 
   try {
     const {
-    params: { id }
-  } = req
+      params: { id }
+    } = req
 
-  if (id) {
-    const pengeluaran = await getPengeluaranByIdService(id)
-    if (!pengeluaran) {
-      return res.status(404).json({ status: false, statusCode: 404, message: 'Pengeluaran tidak ditemukan' })
+    if (id) {
+      const pengeluaran = await getPengeluaranByIdService(id)
+      if (!pengeluaran) {
+        return res.status(404).json({ status: false, statusCode: 404, message: 'Pengeluaran tidak ditemukan' })
+      }
+      return res.status(200).json({ status: true, statusCode: 200, data: pengeluaran })
     }
-    return res.status(200).json({ status: true, statusCode: 200, data: pengeluaran })
-  }
 
     const filters = {
       tanggal: req.query.tanggal ? new Date(String(req.query.tanggal)) : undefined,
@@ -348,7 +372,6 @@ export const getAllPengeluaran = async (req: Request, res: Response) => {
       statusCode: 200,
       data: result
     })
-
   } catch (error) {
     res.status(422).json({
       status: false,
@@ -391,7 +414,6 @@ export const getAllPenerimaan = async (req: Request, res: Response) => {
       statusCode: 200,
       data: result
     })
-
   } catch (error) {
     res.status(422).json({
       status: false,
@@ -400,5 +422,3 @@ export const getAllPenerimaan = async (req: Request, res: Response) => {
     })
   }
 }
-
-

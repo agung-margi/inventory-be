@@ -1,7 +1,16 @@
 import { PrismaClient } from '@prisma/client'
 import { v4 as uuidv4 } from 'uuid'
 import { getNowWIB } from '../../utils/date'
-import { PengeluaranType, PenerimaanType, PermintaanType, PermintaanFilter, TAGType, TAGFilter, PengeluaranFilter, PenerimaanFilter } from './transaksi.type'
+import {
+  PengeluaranType,
+  PenerimaanType,
+  PermintaanType,
+  PermintaanFilter,
+  TAGType,
+  TAGFilter,
+  PengeluaranFilter,
+  PenerimaanFilter
+} from './transaksi.type'
 import { generateDocId, generateOutID, generatePermintaanId, generateTAGID } from '../../utils/gemerateIDDoc'
 
 const prisma = new PrismaClient()
@@ -11,13 +20,17 @@ export const TransaksiOutService = async (payload: PengeluaranType, userId: stri
     // 1. Ambil permintaan terkait
     const permintaan = await tx.permintaan.findUnique({
       where: { id: payload.permintaanId, deletedAt: null },
-      select: { pemintaId: true }
+      select: { pemintaId: true, status: true }
     })
 
     if (!permintaan) {
       throw new Error(`Permintaan dengan ID ${payload.permintaanId} tidak ditemukan`)
     }
 
+    // **Cek jika status sudah completed**
+    if (permintaan.status === 'completed') {
+      throw new Error(`Permintaan dengan ID ${payload.permintaanId} sudah selesai dan tidak bisa diproses lagi`)
+    }
     // 2. VALIDASI SEMUA ITEM
     for (const item of payload.items) {
       const stock = await tx.stock.findFirst({
@@ -445,17 +458,7 @@ export const confirmPenerimaanTAGService = async (payload: PenerimaanType, userI
 }
 
 export const getAllTAGService = async (filters: TAGFilter) => {
-  const {
-    dariWh,
-    keWh,
-    mover,
-    status,
-    tanggal,
-    sortBy = 'tanggal',
-    sortOrder = 'desc',
-    page = 1,
-    limit = 10
-  } = filters
+  const { dariWh, keWh, mover, status, tanggal, sortBy = 'tanggal', sortOrder = 'desc', page = 1, limit = 10 } = filters
 
   const pengiriman = await prisma.pengiriman.findMany({
       where: {
@@ -474,7 +477,7 @@ export const getAllTAGService = async (filters: TAGFilter) => {
     }),
     total = await prisma.pengiriman.count({
       where: {
-         ...(tanggal && { tanggal: { equals: tanggal } }),
+        ...(tanggal && { tanggal: { equals: tanggal } }),
         ...(dariWh && { dariWh: { contains: dariWh, mode: 'insensitive' } }),
         ...(keWh && { keWh: { contains: keWh, mode: 'insensitive' } }),
         ...(mover && { mover: { contains: mover, mode: 'insensitive' } }),
@@ -510,37 +513,37 @@ export const getAllPengeluaranService = async (filters: PengeluaranFilter) => {
 
   // Ambil pengeluaran
   const pengeluaran = await prisma.pengeluaran.findMany({
-  where: {
-    ...(warehouseId && { warehouseId: { contains: warehouseId, mode: 'insensitive' } }),
-    ...(petugasId && { petugasId: { contains: petugasId, mode: 'insensitive' } }),
-    ...(penerimaId && { penerimaId: { contains: penerimaId, mode: 'insensitive' } }),
-    ...(keterangan && { keterangan: { contains: keterangan, mode: 'insensitive' } }),
-    ...(status && { status: { contains: status, mode: 'insensitive' } }),
-    deletedAt: null
-  },
-  orderBy: { [sortBy]: sortOrder },
-  skip: (page - 1) * limit,
-  take: limit
-})
+    where: {
+      ...(warehouseId && { warehouseId: { contains: warehouseId, mode: 'insensitive' } }),
+      ...(petugasId && { petugasId: { contains: petugasId, mode: 'insensitive' } }),
+      ...(penerimaId && { penerimaId: { contains: penerimaId, mode: 'insensitive' } }),
+      ...(keterangan && { keterangan: { contains: keterangan, mode: 'insensitive' } }),
+      ...(status && { status: { contains: status, mode: 'insensitive' } }),
+      deletedAt: null
+    },
+    orderBy: { [sortBy]: sortOrder },
+    skip: (page - 1) * limit,
+    take: limit
+  })
 
-// ambil id unik
-const petugasIds = [...new Set(pengeluaran.map(p => p.petugasId))]
-const penerimaIds = [...new Set(pengeluaran.map(p => p.penerimaId))]
+  // ambil id unik
+  const petugasIds = [...new Set(pengeluaran.map((p) => p.petugasId))]
+  const penerimaIds = [...new Set(pengeluaran.map((p) => p.penerimaId))]
 
-// query user sekali saja
-const users = await prisma.user.findMany({
-  where: {
-    id: { in: [...petugasIds, ...penerimaIds] }
-  },
-  select: { id: true, nama: true }
-})
+  // query user sekali saja
+  const users = await prisma.user.findMany({
+    where: {
+      id: { in: [...petugasIds, ...penerimaIds] }
+    },
+    select: { id: true, nama: true }
+  })
 
-// mapping data
-const pengeluaranWithNama = pengeluaran.map(p => ({
-  ...p,
-  petugasNama: users.find(u => u.id === p.petugasId)?.nama || null,
-  penerimaNama: users.find(u => u.id === p.penerimaId)?.nama || null
-}))
+  // mapping data
+  const pengeluaranWithNama = pengeluaran.map((p) => ({
+    ...p,
+    petugasNama: users.find((u) => u.id === p.petugasId)?.nama || null,
+    penerimaNama: users.find((u) => u.id === p.penerimaId)?.nama || null
+  }))
 
   const total = await prisma.pengeluaran.count({
     where: {
@@ -566,16 +569,7 @@ const pengeluaranWithNama = pengeluaran.map(p => ({
 }
 
 export const getAllPenerimaanService = async (filters: PenerimaanFilter) => {
-  const {
-    tanggal,
-    pengirimanId,
-    jenis,
-    status,
-    sortBy = 'tanggal',
-    sortOrder = 'desc',
-    page = 1,
-    limit = 10
-  } = filters
+  const { tanggal, pengirimanId, jenis, status, sortBy = 'tanggal', sortOrder = 'desc', page = 1, limit = 10 } = filters
 
   const penerimaan = await prisma.penerimaan.findMany({
       where: {
@@ -593,7 +587,7 @@ export const getAllPenerimaanService = async (filters: PenerimaanFilter) => {
     }),
     total = await prisma.penerimaan.count({
       where: {
-         ...(tanggal && { tanggal: { equals: tanggal } }),
+        ...(tanggal && { tanggal: { equals: tanggal } }),
         ...(pengirimanId && { pengirimanId: { contains: pengirimanId, mode: 'insensitive' } }),
         ...(jenis && { jenis: { contains: jenis, mode: 'insensitive' } }),
         ...(status && { status: { contains: status, mode: 'insensitive' } }),
@@ -620,34 +614,67 @@ export const getPengeluaranByIdService = async (id: string) => {
       // Ambil detail item
       detail: true
     }
-  });
+  })
 
   if (!pengeluaran) {
-    throw new Error('Pengeluaran tidak ditemukan');
+    throw new Error('Pengeluaran tidak ditemukan')
   }
 
   // Ambil petugas
   const petugas = await prisma.user.findUnique({
     where: { id: pengeluaran.createdBy },
     select: { id: true, nama: true }
-  });
+  })
 
   // Ambil penerima
   const penerima = await prisma.user.findUnique({
     where: { id: pengeluaran.penerimaId },
     select: { id: true, nama: true }
-  });
+  })
 
   // Ambil warehouse
   const warehouse = await prisma.warehouse.findUnique({
     where: { kode_wh: pengeluaran.warehouseId },
     select: { kode_wh: true, nama_wh: true }
-  });
+  })
 
   return {
     ...pengeluaran,
     petugas,
     penerima,
     warehouse
-  };
-};
+  }
+}
+
+export const getTAGByid = async (id: string) => {
+  // Ambil data TAG
+  const tag = await prisma.pengiriman.findUnique({
+    where: { id },
+    include: {
+      // Ambil detail item
+      detail: true
+    }
+  })
+
+  if (!tag) {
+    throw new Error('TAG tidak ditemukan')
+  }
+
+  // Ambil petugas
+  const petugas = await prisma.user.findUnique({
+    where: { id: tag.createdBy },
+    select: { id: true, nama: true }
+  })
+
+  // Ambil warehouse
+  const warehouse = await prisma.warehouse.findUnique({
+    where: { kode_wh: tag.keWh },
+    select: { kode_wh: true, nama_wh: true }
+  })
+
+  return {
+    ...tag,
+    petugas,
+    warehouse
+  }
+}
