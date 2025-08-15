@@ -508,35 +508,54 @@ export const getAllPengeluaranService = async (filters: PengeluaranFilter) => {
     limit = 10
   } = filters
 
-  const pengiriman = await prisma.pengiriman.findMany({
-      where: {
-        ...(warehouseId && { warehouseId: { contains: warehouseId, mode: 'insensitive' } }),
-        ...(petugasId && { petugasId: { contains: petugasId, mode: 'insensitive' } }),
-        ...(penerimaId && { penerimaId: { contains: penerimaId, mode: 'insensitive' } }),
-        ...(keterangan && { keterangan: { contains: keterangan, mode: 'insensitive' } }),
-        ...(status && { status: { contains: status, mode: 'insensitive' } }),
-        deletedAt: null
-      },
-      orderBy: {
-        [sortBy]: sortOrder
-      },
-      skip: (page - 1) * limit,
-      take: limit
-    }),
-    total = await prisma.pengiriman.count({
-      where: {
-         ...(tanggal && { tanggal: { equals: tanggal } }),
-        ...(warehouseId && { warehouseId: { contains: warehouseId, mode: 'insensitive' } }),
-        ...(petugasId && { petugasId: { contains: petugasId, mode: 'insensitive' } }),
-        ...(penerimaId && { penerimaId: { contains: penerimaId, mode: 'insensitive' } }),
-        ...(keterangan && { keterangan: { contains: keterangan, mode: 'insensitive' } }),
-        ...(status && { status: { contains: status, mode: 'insensitive' } }),
-        deletedAt: null
-      }
-    })
+  // Ambil pengeluaran
+  const pengeluaran = await prisma.pengeluaran.findMany({
+  where: {
+    ...(warehouseId && { warehouseId: { contains: warehouseId, mode: 'insensitive' } }),
+    ...(petugasId && { petugasId: { contains: petugasId, mode: 'insensitive' } }),
+    ...(penerimaId && { penerimaId: { contains: penerimaId, mode: 'insensitive' } }),
+    ...(keterangan && { keterangan: { contains: keterangan, mode: 'insensitive' } }),
+    ...(status && { status: { contains: status, mode: 'insensitive' } }),
+    deletedAt: null
+  },
+  orderBy: { [sortBy]: sortOrder },
+  skip: (page - 1) * limit,
+  take: limit
+})
+
+// ambil id unik
+const petugasIds = [...new Set(pengeluaran.map(p => p.petugasId))]
+const penerimaIds = [...new Set(pengeluaran.map(p => p.penerimaId))]
+
+// query user sekali saja
+const users = await prisma.user.findMany({
+  where: {
+    id: { in: [...petugasIds, ...penerimaIds] }
+  },
+  select: { id: true, nama: true }
+})
+
+// mapping data
+const pengeluaranWithNama = pengeluaran.map(p => ({
+  ...p,
+  petugasNama: users.find(u => u.id === p.petugasId)?.nama || null,
+  penerimaNama: users.find(u => u.id === p.penerimaId)?.nama || null
+}))
+
+  const total = await prisma.pengeluaran.count({
+    where: {
+      ...(tanggal && { tanggal: { equals: tanggal } }),
+      ...(warehouseId && { warehouseId: { contains: warehouseId, mode: 'insensitive' } }),
+      ...(petugasId && { petugasId: { contains: petugasId, mode: 'insensitive' } }),
+      ...(penerimaId && { penerimaId: { contains: penerimaId, mode: 'insensitive' } }),
+      ...(keterangan && { keterangan: { contains: keterangan, mode: 'insensitive' } }),
+      ...(status && { status: { contains: status, mode: 'insensitive' } }),
+      deletedAt: null
+    }
+  })
 
   return {
-    data: pengiriman,
+    data: pengeluaranWithNama,
     meta: {
       total,
       page,

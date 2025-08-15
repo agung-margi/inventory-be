@@ -179,3 +179,21 @@ nama: req.query.nama?.toString(),
     })
   }
 }
+
+export const logout = async (req: Request, res: Response) => {
+  try {
+    res.clearCookie('token');
+    res.clearCookie('XSRF-TOKEN');
+    res.status(200).json({
+      status: true,
+      statusCode: 200,
+      message: 'Logout successful'
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: false,
+      statusCode: 500,
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+};
