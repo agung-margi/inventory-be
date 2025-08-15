@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { createTransaksiOutValidation, PenerimaanValidation, PermintaanValidation, TAGValidation } from './transaksi.validator'
-import { approvePermintaanService, confirmPenerimaanTAGService, createTAGService, getAllPenerimaanService, getAllPengeluaranService, getAllPermintaanService, getAllTAGService, getPermintaanByIdService, saveTransaksiPenerimaan, saveTransaksiPermintaan, TransaksiOutService } from './transaksi.service'
+import { approvePermintaanService, confirmPenerimaanTAGService, createTAGService, getAllPenerimaanService, getAllPengeluaranService, getAllPermintaanService, getAllTAGService, getPengeluaranByIdService, getPermintaanByIdService, saveTransaksiPenerimaan, saveTransaksiPermintaan, TransaksiOutService } from './transaksi.service'
 import { Console } from 'console'
 
 export const createTransaksiOut = async (req: Request, res: Response) => {
@@ -309,6 +309,18 @@ export const getAllPengeluaran = async (req: Request, res: Response) => {
   }
 
   try {
+    const {
+    params: { id }
+  } = req
+
+  if (id) {
+    const pengeluaran = await getPengeluaranByIdService(id)
+    if (!pengeluaran) {
+      return res.status(404).json({ status: false, statusCode: 404, message: 'Pengeluaran tidak ditemukan' })
+    }
+    return res.status(200).json({ status: true, statusCode: 200, data: pengeluaran })
+  }
+
     const filters = {
       tanggal: req.query.tanggal ? new Date(String(req.query.tanggal)) : undefined,
       warehouseId: req.query.warehouseId ? String(req.query.warehouseId) : undefined,
@@ -388,3 +400,5 @@ export const getAllPenerimaan = async (req: Request, res: Response) => {
     })
   }
 }
+
+

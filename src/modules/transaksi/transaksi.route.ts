@@ -5,7 +5,7 @@ import { requireAdmin, requireAuth, requireManager, requireStaffSO, requireUser 
 
 export const TransaksiRouter: Router = Router()
 TransaksiRouter.post('/pengeluaran', requireAuth, requireStaffSO,createTransaksiOut)
-TransaksiRouter.get('/pengeluaran', requireAuth, getAllPengeluaran)
+TransaksiRouter.get('/pengeluaran', requireAuth, requireStaffSO, getAllPengeluaran)
 TransaksiRouter.post('/penerimaan', requireAuth, requireStaffSO, createPenerimaan)
 TransaksiRouter.get('/penerimaan', requireAuth, getAllPenerimaan)
 TransaksiRouter.post('/permintaan', requireAuth, requireUser, createPermintaan)
@@ -15,3 +15,4 @@ TransaksiRouter.get('/permintaan', requireAuth, getAllPermintaan)
 TransaksiRouter.post('/tag', requireAuth, requireStaffSO, createTAG)
 TransaksiRouter.post('/tag/confirm', requireAuth, requireAdmin, confirmTAG)
 TransaksiRouter.get('/tag', requireAuth, requireAdmin, getAllTAG)
+TransaksiRouter.get('/pengeluaran/:id', requireAuth, getAllPengeluaran)

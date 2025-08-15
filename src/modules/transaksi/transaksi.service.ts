@@ -612,3 +612,43 @@ export const getAllPenerimaanService = async (filters: PenerimaanFilter) => {
     }
   }
 }
+
+export const getPengeluaranByIdService = async (id: string) => {
+  // Ambil data pengeluaran
+  const pengeluaran = await prisma.pengeluaran.findUnique({
+    where: { id },
+    include: {
+      // Ambil detail item
+      detail: true
+    }
+  });
+
+  if (!pengeluaran) {
+    throw new Error('Pengeluaran tidak ditemukan');
+  }
+
+  // Ambil petugas
+  const petugas = await prisma.user.findUnique({
+    where: { id: pengeluaran.createdBy },
+    select: { id: true, nama: true }
+  });
+
+  // Ambil penerima
+  const penerima = await prisma.user.findUnique({
+    where: { id: pengeluaran.penerimaId },
+    select: { id: true, nama: true }
+  });
+
+  // Ambil warehouse
+  const warehouse = await prisma.warehouse.findUnique({
+    where: { kode_wh: pengeluaran.warehouseId },
+    select: { kode_wh: true, nama_wh: true }
+  });
+
+  return {
+    ...pengeluaran,
+    petugas,
+    penerima,
+    warehouse
+  };
+};

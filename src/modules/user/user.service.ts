@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from 'uuid'
 import { comparePassword, hashPassword } from '../../utils/hashing'
 import { signJWT, verifyJWT } from '../../utils/jwt'
 
-
 const prisma = new PrismaClient()
 
 export const saveUserService = async (payload: UserType) => {
@@ -20,9 +19,9 @@ export const saveUserService = async (payload: UserType) => {
     select: { id: true }
   })
   if (phoneExist) throw new Error('Nomor telepon telah terdaftar')
-  
+
   // compare password with confirmPassword
-  if (payload.password !== payload.confirmPassword) {
+  if (payload.password !== payload.confirmPassword.trim()) {
     throw new Error('Password dan Konfirmasi Password harus sesuai')
   }
 
@@ -54,7 +53,7 @@ export const loginService = async (payload: UserType) => {
   const isValid = await comparePassword(payload.password, user.password)
 
   if (!isValid) throw new Error('User dan Password Salah')
-  const { id, name, role,kode_wh } = user
+  const { id, name, role, kode_wh } = user
 
   const accessToken = signJWT({ id, name, role, kode_wh }, { expiresIn: '1h' })
   const refreshToken = signJWT({ id, name, role, kode_wh }, { expiresIn: '1d' })
