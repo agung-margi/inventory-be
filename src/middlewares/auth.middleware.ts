@@ -58,16 +58,16 @@ export const requireAdmin = (req: Request, res: Response, next: NextFunction) =>
   return next()
 }
 
-export const requireStaffSO = (req: Request, res: Response, next: NextFunction) => {
-  const user = res.locals.user
-  if (!user || user.role !== 'staff-so') {
+export const requireAdminOrStaffSO = (req: Request, res: Response, next: NextFunction) => {
+  const user = res.locals.user;
+  if (!user || (user.role !== 'admin' && user.role !== 'staff-so')) {
     return res.status(403).json({
       status: false,
       statusCode: 403,
       message: 'Forbidden'
-    })
+    });
   }
-  return next()
+  return next();
 }
 
 export const requireManager = (req: Request, res: Response, next: NextFunction) => {

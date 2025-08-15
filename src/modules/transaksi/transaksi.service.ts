@@ -221,6 +221,7 @@ export const completePermintaanService = async (id: string, userId: string) => {
   })
   return updatedTransaksi
 }
+
 export const getAllPermintaanService = async (filters: PermintaanFilter) => {
   const {
     id,
@@ -443,7 +444,6 @@ export const confirmPenerimaanTAGService = async (payload: PenerimaanType, userI
   })
 }
 
-
 export const getAllTAGService = async (filters: TAGFilter) => {
   const {
     dariWh,
@@ -564,7 +564,6 @@ const pengeluaranWithNama = pengeluaran.map(p => ({
     }
   }
 }
-
 
 export const getAllPenerimaanService = async (filters: PenerimaanFilter) => {
   const {
