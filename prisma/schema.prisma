@@ -27,6 +27,7 @@ model User {
   permintaan  Permintaan[]
   pengiriman  Pengiriman[]
   pengeluaran Pengeluaran[]
+  technicianStock TechnicianStock[]
 
   Pengeluaran Pengeluaran[] @relation("PengeluaranPenerima")
 }
@@ -76,6 +77,7 @@ model Item {
   permintaanDetail  PermintaanDetail[]
   pengirimanDetail  PengirimanDetail[]
   pengeluaranDetail PengeluaranDetail[]
+  technicianStock   TechnicianStock[]
 }
 
 model Penerimaan {
@@ -165,8 +167,8 @@ model Permintaan {
   id        String    @id
   tujuanWh  String
   pemintaId String
+  projectId String?
   status    String    @default("PENDING")
-  project   String?
   catatan   String?
   tanggal   DateTime  @default(now())
   createdAt DateTime  @default(now())
@@ -179,6 +181,7 @@ model Permintaan {
   // relasi
   tujuan      Warehouse          @relation("PermintaanTujuan", fields: [tujuanWh], references: [kode_wh])
   peminta     User               @relation(fields: [pemintaId], references: [id])
+  project    Project?  @relation(fields: [projectId], references: [id])
   detail      PermintaanDetail[]
   pengeluaran Pengeluaran[]
 }
@@ -207,6 +210,7 @@ model Pengeluaran {
   penerimaId    String
   keterangan    String?
   permintaanId  String
+  projectId     String?
   status        String    @default("DIPROSES") // DIPROSES, SELESAI
   tanggal       DateTime  @default(now())
   createdAt     DateTime  @default(now())
@@ -220,6 +224,8 @@ model Pengeluaran {
   petugas    User                @relation(fields: [petugasId], references: [id])
   penerima   User                @relation("PengeluaranPenerima", fields: [penerimaId], references: [id])
   permintaan Permintaan          @relation(fields: [permintaanId], references: [id])
+  project       Project?  @relation(fields: [projectId], references: [id])
+
   detail     PengeluaranDetail[]
 
   Pengiriman Pengiriman[] @relation("PengeluaranPenerima")
@@ -260,4 +266,47 @@ model Stock {
   kodeWhStock Warehouse @relation(fields: [kode_wh], references: [kode_wh])
 
   @@unique([kode_wh, designator], name: "kode_wh_designator")
+}
+
+model TechnicianStock {
+  id         String    @id @default(uuid())
+  userId     String
+  designator String    @db.VarChar(50)
+   projectId  String?
+  available  Int       @default(0)
+  createdAt  DateTime  @default(now()) @db.Timestamp(0)
+  createdBy  String    @default("system") @db.VarChar(36)
+  updatedAt  DateTime  @updatedAt @db.Timestamp(0)
+  updatedBy  String?   @db.VarChar(36)
+  deletedAt  DateTime? @db.Timestamp(0)
+  deletedBy  String?   @db.VarChar(36)
+
+  // relasi
+  user User @relation(fields: [userId], references: [id])
+  item Item @relation(fields: [designator], references: [designator])
+  project    Project? @relation(fields: [projectId], references: [id])
+
+  @@unique([userId, designator], name: "user_designator")
+}
+
+model Project {
+  id        String    @id @default(uuid())
+  code      String    @unique @db.VarChar(20)
+  name      String    @db.VarChar(100)
+  customer  String?   @db.VarChar(100)
+  location  String?   @db.VarChar(150)
+  status    String    @default("ACTIVE") // ACTIVE, COMPLETED, CANCELLED
+  startDate DateTime?
+  endDate   DateTime?
+  createdAt DateTime  @default(now()) @db.Timestamp(0)
+  createdBy String    @default("system") @db.VarChar(36)
+  updatedAt DateTime  @updatedAt @db.Timestamp(0)
+  updatedBy String    @default("system") @db.VarChar(36)
+  deletedAt DateTime? @db.Timestamp(0)
+  deletedBy String?   @db.VarChar(36)
+
+  // relasi
+  permintaan  Permintaan[]
+  pengeluaran Pengeluaran[]
+  technicianStocks TechnicianStock[]
 }
